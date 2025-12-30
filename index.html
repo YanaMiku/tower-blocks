@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D Stack Tower</title>
+    <title>3D Stack Game - Rainbow Edition</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;600&display=swap');
+
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #2c3e50;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            touch-action: manipulation; /* Mencegah zoom pada double tap */
+            background-color: #dbeafe; /* Fallback color */
+            font-family: 'Poppins', sans-serif;
+            touch-action: none; /* Prevent zoom/scroll on mobile */
         }
 
         #game-container {
@@ -19,448 +21,557 @@
             left: 0;
             width: 100%;
             height: 100%;
+            z-index: 1;
         }
 
         /* UI Overlay */
-        #score-container {
-            position: absolute;
-            top: 20px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            pointer-events: none; /* Klik tembus ke canvas */
-            color: white;
-            z-index: 10;
-        }
-
-        #score {
-            font-size: 3rem;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
         #ui-layer {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            z-index: 10;
+            pointer-events: none; /* Let clicks pass through to game */
             display: flex;
-            justify-content: center;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 20;
-            transition: opacity 0.3s;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        .menu-box {
-            background: white;
-            padding: 30px 50px;
-            border-radius: 15px;
+        .score-container {
             text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            max-width: 80%;
+            color: #334155;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+        }
+
+        #score {
+            font-family: 'Fredoka One', cursive;
+            font-size: 4rem;
+            margin: 0;
+            line-height: 1;
+        }
+
+        #high-score {
+            font-size: 1rem;
+            font-weight: 600;
+            opacity: 0.7;
+        }
+
+        /* Screens (Start / Game Over) */
+        .screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            pointer-events: auto; /* Re-enable clicks for buttons */
+            transition: opacity 0.3s;
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         h1 {
-            margin: 0 0 10px 0;
-            color: #333;
-            font-size: 2rem;
+            font-family: 'Fredoka One', cursive;
+            color: #475569;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
         }
 
         p {
-            color: #666;
-            margin-bottom: 20px;
+            color: #64748b;
+            margin-bottom: 25px;
         }
 
         button {
-            background: #ff6b6b;
-            color: white;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
             border: none;
-            padding: 15px 30px;
+            padding: 15px 40px;
+            color: white;
             font-size: 1.2rem;
+            font-family: 'Fredoka One', cursive;
             border-radius: 50px;
             cursor: pointer;
-            transition: transform 0.1s, background 0.2s;
-            outline: none;
-            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
         }
 
         button:active {
             transform: scale(0.95);
+            box-shadow: 0 2px 5px rgba(99, 102, 241, 0.4);
         }
 
-        button:hover {
-            background: #fa5252;
+        @keyframes popIn {
+            0% { opacity: 0; transform: translate(-50%, -40%); }
+            100% { opacity: 1; transform: translate(-50%, -50%); }
         }
 
-        .hidden {
-            opacity: 0;
+        /* Petunjuk Awal */
+        #instruction {
+            position: absolute;
+            bottom: 50px;
+            width: 100%;
+            text-align: center;
+            color: #64748b;
+            font-weight: 600;
+            animation: pulse 2s infinite;
             pointer-events: none;
+            display: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
         }
     </style>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
-    <!-- Wadah Skor -->
-    <div id="score-container">
-        <div id="score">0</div>
-    </div>
-
-    <!-- UI Start / Game Over -->
-    <div id="ui-layer">
-        <div class="menu-box" id="start-screen">
-            <h1>3D Stack</h1>
-            <p>Tap atau Spasi untuk menumpuk blok</p>
-            <button id="start-btn">Mulai Main</button>
-        </div>
-        <div class="menu-box hidden" id="game-over-screen">
-            <h1>Game Over</h1>
-            <p>Skor Akhir: <span id="final-score">0</span></p>
-            <button id="restart-btn">Coba Lagi</button>
-        </div>
-    </div>
-
-    <!-- Canvas Game -->
     <div id="game-container"></div>
 
-    <!-- Three.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <div id="ui-layer">
+        <div class="score-container">
+            <div id="score">0</div>
+            <div id="high-score">High Score: 0</div>
+        </div>
+    </div>
+
+    <div id="start-screen" class="screen active">
+        <h1>3D STACK</h1>
+        <p>Tumpuk setinggi mungkin!</p>
+        <button id="start-btn">MAIN</button>
+    </div>
+
+    <div id="game-over-screen" class="screen">
+        <h1>GAME OVER</h1>
+        <p>Skor Akhir: <span id="final-score">0</span></p>
+        <button id="restart-btn">MAIN LAGI</button>
+    </div>
+
+    <div id="instruction">Tap / Klik untuk meletakkan blok</div>
 
     <script>
         /**
-         * 3D STACK GAME
-         * Menggunakan Three.js
+         * 3D STACK GAME - LOGIC CORE
          */
 
-        // --- Variabel Global & Konfigurasi ---
-        let scene, camera, renderer;
-        let ambientLight, dirLight;
-        
-        // State Game
-        let stack = [];     // Menyimpan blok yang sudah tertumpuk
-        let overhangs = []; // Menyimpan potongan yang jatuh (debris)
-        let gameEnded = false;
-        let score = 0;
-        let hueValue = 0;   // Untuk warna pelangi
+        // --- KONFIGURASI GAME ---
+        const CONFIG = {
+            boxHeight: 1,
+            originalBoxSize: 3,
+            moveSpeed: 0.15,
+            bgColor: 0xdbeafe, // Soft Blue Pastel
+            cameraOffset: 10,
+            cameraZoom: 2.5
+        };
 
-        // Konstanta Blok
-        const BOX_HEIGHT = 1;
-        const ORIGINAL_BOX_SIZE = 3;
-        let currentSize = { width: ORIGINAL_BOX_SIZE, depth: ORIGINAL_BOX_SIZE };
+        // --- VARIABEL GLOBAL ---
+        let scene, camera, renderer;
+        let stack = []; 
+        let overhangs = []; // Puing-puing yang jatuh
+        let gameActive = false;
+        let score = 0;
+        let highScore = localStorage.getItem('stackHighScore') || 0;
         
-        // Variabel Gerakan
-        let speed = 0.15;
+        // Logika Gerakan
         let axis = 'x'; // 'x' atau 'z'
         let direction = 1; // 1 atau -1
-        
-        // Referensi UI
+        let currentBlock = null;
+
+        // DOM Elements
         const scoreEl = document.getElementById('score');
+        const highScoreEl = document.getElementById('high-score');
         const finalScoreEl = document.getElementById('final-score');
-        const uiLayer = document.getElementById('ui-layer');
         const startScreen = document.getElementById('start-screen');
         const gameOverScreen = document.getElementById('game-over-screen');
-        const startBtn = document.getElementById('start-btn');
-        const restartBtn = document.getElementById('restart-btn');
+        const instructionEl = document.getElementById('instruction');
 
-        // --- Inisialisasi ---
+        // Update UI Awal
+        highScoreEl.innerText = `High Score: ${highScore}`;
+
+        // --- INIT THREE.JS ---
         function init() {
-            // 1. Setup Scene
+            // 1. Scene
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xd0e7f9); // Langit biru muda
-            scene.fog = new THREE.Fog(0xd0e7f9, 10, 25);  // Kabut agar transisi horizon halus
+            scene.background = new THREE.Color(CONFIG.bgColor);
+            
+            // Tambahkan kabut untuk kedalaman (Fog)
+            scene.fog = new THREE.Fog(CONFIG.bgColor, 10, 25);
 
-            // 2. Setup Kamera (Orthographic agar perspektif isometrik rapi)
+            // 2. Camera (Orthographic untuk tampilan isometrik yang bersih)
             const aspect = window.innerWidth / window.innerHeight;
             const d = 10;
             camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
             
-            // Posisi isometrik klasik
-            camera.position.set(20, 20, 20);
+            // Posisi Isometric
+            camera.position.set(CONFIG.cameraOffset, CONFIG.cameraOffset, CONFIG.cameraOffset);
             camera.lookAt(0, 0, 0);
 
-            // 3. Setup Renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            // 3. Renderer
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Optimasi performa HP
             renderer.shadowMap.enabled = true; // Aktifkan bayangan
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.getElementById('game-container').appendChild(renderer.domElement);
 
-            // 4. Pencahayaan
-            // Cahaya ambient (dasar)
-            ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
+            // 4. Pencahayaan (Lighting)
+            setupLighting();
 
-            // Cahaya Matahari (Directional)
-            dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
-            dirLight.position.set(10, 20, 10);
-            dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 1024;
-            dirLight.shadow.mapSize.height = 1024;
-            dirLight.shadow.camera.left = -20;
-            dirLight.shadow.camera.right = 20;
-            dirLight.shadow.camera.top = 20;
-            dirLight.shadow.camera.bottom = -20;
-            scene.add(dirLight);
+            // 5. Setup Awal Blok Basis
+            resetGameBase();
 
-            // 5. Event Listeners
+            // 6. Event Listeners
             window.addEventListener('resize', onWindowResize, false);
             
-            // Input: Klik mouse dan Sentuh layar
-            document.addEventListener('pointerdown', handleInput);
-            document.addEventListener('keydown', (e) => {
-                if (e.code === 'Space') handleInput(e);
+            // Input (Mouse & Touch)
+            document.addEventListener('click', handleInput);
+            document.addEventListener('touchstart', (e) => {
+                // Prevent ghost clicks on buttons
+                if(e.target.tagName !== 'BUTTON') {
+                    handleInput(e);
+                }
+            }, {passive: false});
+
+            // Tombol UI
+            document.getElementById('start-btn').addEventListener('click', startGame);
+            document.getElementById('restart-btn').addEventListener('click', startGame);
+
+            // Mulai Render Loop
+            animate();
+        }
+
+        function setupLighting() {
+            // Cahaya Ambient (Umum)
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            // Cahaya Matahari (Directional) untuk bayangan
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+            dirLight.position.set(10, 20, 10);
+            dirLight.castShadow = true;
+            
+            // Optimasi area bayangan
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            const d = 10;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+
+            scene.add(dirLight);
+        }
+
+        // --- GENERATOR WARNA DINAMIS ---
+        function getRainbowColor(index) {
+            // Menggunakan HSL. Hue berubah 5 derajat setiap blok.
+            // Saturation 70%, Lightness 60% (Pastel Vibrant)
+            const hue = (index * 10) % 360; 
+            return new THREE.Color(`hsl(${hue}, 75%, 60%)`);
+        }
+
+        // --- SISTEM BLOK ---
+        
+        /**
+         * FUNGSI UNTUK MENGGANTI MODEL 3D (GLTFLoader)
+         * ----------------------------------------------------
+         * Jika Anda ingin menggunakan model 3D kustom (misalnya dari Blender):
+         * 1. Hapus/Komentari bagian `new THREE.BoxGeometry`.
+         * 2. Gunakan GLTFLoader untuk memuat model.
+         * 3. Masalah: Karena game ini memotong geometri (slicing),
+         * menggunakan model statis (GLTF) sulit karena meshnya harus dipotong secara dinamis.
+         * * SOLUSI TERBAIK UNTUK PEMULA:
+         * Tetap gunakan BoxGeometry untuk logika fisikanya, tapi letakkan 
+         * model GLTF "kecil" di dalam atau di atas blok sebagai hiasan.
+         */
+
+        function createBlock(x, y, z, width, depth, index) {
+            // Geometri
+            const geometry = new THREE.BoxGeometry(width, CONFIG.boxHeight, depth);
+            
+            // Material dengan warna dinamis
+            const material = new THREE.MeshLambertMaterial({ 
+                color: getRainbowColor(index)
             });
 
-            startBtn.addEventListener('click', startGame);
-            restartBtn.addEventListener('click', startGame);
-
-            // Loop render awal (kosong)
-            renderer.render(scene, camera);
-        }
-
-        // --- Logika Gameplay ---
-
-        function startGame() {
-            // Reset Variable
-            stack.forEach(obj => scene.remove(obj));
-            overhangs.forEach(obj => scene.remove(obj));
-            
-            stack = [];
-            overhangs = [];
-            score = 0;
-            gameEnded = false;
-            hueValue = 0;
-            currentSize = { width: ORIGINAL_BOX_SIZE, depth: ORIGINAL_BOX_SIZE };
-            axis = 'x';
-            direction = 1;
-            speed = 0.15;
-
-            scoreEl.innerText = score;
-            
-            // Reset Kamera
-            camera.position.set(20, 20, 20);
-            camera.lookAt(0, 0, 0);
-
-            // Sembunyikan UI
-            uiLayer.style.opacity = '0';
-            setTimeout(() => {
-                startScreen.classList.add('hidden');
-                gameOverScreen.classList.add('hidden');
-                uiLayer.style.display = 'none'; // Benar-benar hilangkan agar bisa klik canvas
-            }, 300);
-
-            // Tambahkan Base (Lantai Awal)
-            addLayer(0, 0, ORIGINAL_BOX_SIZE, ORIGINAL_BOX_SIZE, false); // false = tidak bergerak
-            
-            // Tambahkan Layer Pertama yang bergerak
-            addLayer(-10, 0, ORIGINAL_BOX_SIZE, ORIGINAL_BOX_SIZE, true); // mulai dari posisi jauh
-
-            // Mulai Loop Animasi
-            if (!renderer.info.autoClear) animate(); // Cek sederhana agar tidak double loop
-            else animate();
-        }
-
-        function addLayer(x, z, width, depth, moving = true) {
-            const y = stack.length * BOX_HEIGHT; // Posisi Y berdasarkan tumpukan
-            
-            // Buat Mesh
-            const layer = createBlock(x, y, z, width, depth, hueValue);
-            layer.direction = axis; // Simpan axis gerakan saat ini (x atau z)
-            
-            scene.add(layer);
-            stack.push(layer);
-
-            if (moving) {
-                // Set posisi awal untuk animasi bolak-balik
-                // Kita set posisi agak jauh agar terlihat masuk layar
-                if (axis === 'x') {
-                    layer.position.x = -10;
-                } else {
-                    layer.position.z = -10;
-                }
-            } else {
-                // Base block (tidak bergerak)
-                hueValue += 5; 
-            }
-        }
-
-        /**
-         * Fungsi membuat Mesh Blok Visual
-         * Di sini tempat integrasi GLTFLoader jika ingin model kustom
-         */
-        function createBlock(x, y, z, width, depth, hue) {
-            // Warna pelangi halus
-            const color = new THREE.Color(`hsl(${hue}, 80%, 60%)`);
-            
-            // --- [GLTFLoader Integration Note] ---
-            // Jika ingin menggunakan model 3D:
-            // 1. Load model di `init()` dan simpan di variabel global.
-            // 2. Di sini, clone model tersebut: `let mesh = model.clone();`
-            // 3. Scale mesh agar sesuai dengan `width` dan `depth`:
-            //    mesh.scale.set(width / originalModelSize, BOX_HEIGHT, depth / originalModelSize);
-            // 4. Set material color jika perlu.
-            // -------------------------------------
-
-            // Menggunakan Three.js Geometry standar
-            const geometry = new THREE.BoxGeometry(width, BOX_HEIGHT, depth);
-            const material = new THREE.MeshLambertMaterial({ color: color });
-            
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.set(x, y, z);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
 
-            // Simpan properti dimensi untuk logika pemotongan
-            mesh.userData = { width, depth };
-
+            scene.add(mesh);
             return mesh;
         }
 
-        function handleInput(event) {
-            // Jangan proses jika klik pada UI menu atau game sudah selesai
-            if (gameEnded) return;
-            if (event.type === 'pointerdown' && event.target.tagName === 'BUTTON') return;
-            // Cegah klik tembus saat UI masih fade-out
-            if (uiLayer.style.opacity !== '0' && uiLayer.style.display !== 'none') return;
-
-            const topLayer = stack[stack.length - 1];
-            const prevLayer = stack[stack.length - 2];
-
-            // Jika ini blok pertama (di atas base), jalankan logika
-            if (stack.length >= 2) {
-                const moveDelta = time * speed; // Kecepatan saat ini
-                
-                // Hitung posisi relatif dan overlap
-                // Logika inti pemotongan
-                splitBlock(topLayer, prevLayer);
-            }
-        }
-
-        function splitBlock(topLayer, prevLayer) {
-            const direction = topLayer.direction; // 'x' atau 'z'
-            
-            // Hitung selisih posisi
-            const delta = topLayer.position[direction] - prevLayer.position[direction];
-            const overhangSize = Math.abs(delta);
-            
-            // Dimensi yang relevan (width untuk X, depth untuk Z)
-            const size = direction === 'x' ? topLayer.userData.width : topLayer.userData.depth;
-            
-            const overlap = size - overhangSize;
-
-            if (overlap > 0) {
-                // --- BERHASIL (Masih ada sisa blok) ---
-                
-                // Potong Ukuran
-                cutBox(topLayer, overlap, delta, direction);
-                
-                // Update Skor
-                score++;
-                scoreEl.innerText = score;
-                hueValue += 5; // Geser warna
-
-                // Tambah kecepatan sedikit (makin tinggi makin cepat)
-                if(score % 5 === 0) speed += 0.01;
-
-                // Ganti Axis gerakan untuk blok berikutnya
-                axis = axis === 'x' ? 'z' : 'x';
-
-                // Hitung dimensi blok baru
-                const nextX = direction === 'x' ? topLayer.position.x : topLayer.position.x;
-                const nextZ = direction === 'z' ? topLayer.position.z : topLayer.position.z;
-                
-                // Current Size global diperbarui di fungsi cutBox
-                
-                // Spawn blok baru di atasnya
-                addLayer(nextX, nextZ, currentSize.width, currentSize.depth);
-
-            } else {
-                // --- GAGAL (Meleset total) ---
-                endGame();
-            }
-        }
-
-        function cutBox(topLayer, overlap, delta, axisType) {
-            const currentW = topLayer.userData.width;
-            const currentD = topLayer.userData.depth;
-
-            // Update metadata ukuran global
-            if (axisType === 'x') {
-                currentSize.width = overlap;
-                // Posisi baru blok yang tersisa (di tengah area overlap)
-                topLayer.scale.x = overlap / currentW;
-                topLayer.position.x -= delta / 2;
-                topLayer.userData.width = overlap;
-
-                // Buat Potongan Jatuh (Debris)
-                const overhangShift = (overlap / 2 + (currentW - overlap) / 2) * Math.sign(delta);
-                const overhangX = topLayer.position.x + overhangShift;
-                const overhangW = currentW - overlap;
-                addOverhang(overhangX, topLayer.position.y, topLayer.position.z, overhangW, currentD, 'x');
-
-            } else { // axisType === 'z'
-                currentSize.depth = overlap;
-                // Posisi baru
-                topLayer.scale.z = overlap / currentD;
-                topLayer.position.z -= delta / 2;
-                topLayer.userData.depth = overlap;
-
-                // Buat Potongan Jatuh
-                const overhangShift = (overlap / 2 + (currentD - overlap) / 2) * Math.sign(delta);
-                const overhangZ = topLayer.position.z + overhangShift;
-                const overhangD = currentD - overlap;
-                addOverhang(topLayer.position.x, topLayer.position.y, overhangZ, currentW, overhangD, 'z');
-            }
-            
-            // Visual: Update Texture/Geometry sejati (opsional, tapi scaling sudah cukup visual)
-            // ThreeJS scaling tidak mengubah geometri bounding box asli, tapi visualnya benar.
-        }
-
-        function addOverhang(x, y, z, width, depth, axisType) {
-            const color = stack[stack.length-1].material.color;
+        function createOverhang(x, y, z, width, depth, color) {
+            const geometry = new THREE.BoxGeometry(width, CONFIG.boxHeight, depth);
             const material = new THREE.MeshLambertMaterial({ color: color });
-            const geometry = new THREE.BoxGeometry(width, BOX_HEIGHT, depth);
             const mesh = new THREE.Mesh(geometry, material);
-            
             mesh.position.set(x, y, z);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             
-            // Data fisika sederhana untuk animasi jatuh
-            mesh.userData = {
-                velocity: { y: 0, rx: Math.random() * 0.2 - 0.1, rz: Math.random() * 0.2 - 0.1 },
-                active: true
-            };
-
-            overhangs.push(mesh);
             scene.add(mesh);
+            return mesh;
         }
 
-        function endGame() {
-            gameEnded = true;
-            finalScoreEl.innerText = score;
+        // --- LOGIKA GAMEPLAY ---
+
+        function startGame() {
+            // Reset Variable
+            gameActive = true;
+            score = 0;
+            scoreEl.innerText = score;
             
-            // Tampilkan Menu Game Over
-            uiLayer.style.display = 'flex';
-            uiLayer.style.opacity = '1';
-            startScreen.classList.add('hidden');
-            gameOverScreen.classList.remove('hidden');
+            // UI Update
+            startScreen.classList.remove('active');
+            gameOverScreen.classList.remove('active');
+            instructionEl.style.display = 'block';
 
-            // Efek jatuh blok terakhir
-            const topLayer = stack.pop();
-            if(topLayer) {
-                scene.remove(topLayer);
-                addOverhang(topLayer.position.x, topLayer.position.y, topLayer.position.z, topLayer.userData.width, topLayer.userData.depth, axis);
-            }
+            // Bersihkan Scene
+            resetGameBase();
+
+            // Tambah blok pertama yang bergerak
+            spawnNextBlock();
         }
 
+        function resetGameBase() {
+            // Hapus semua blok lama dari scene
+            stack.forEach(mesh => scene.remove(mesh));
+            overhangs.forEach(obj => scene.remove(obj.mesh));
+            
+            stack = [];
+            overhangs = [];
+
+            // Blok Dasar (Fondasi)
+            const baseBlock = createBlock(0, 0, 0, CONFIG.originalBoxSize, CONFIG.originalBoxSize, 0);
+            stack.push(baseBlock);
+        }
+
+        function spawnNextBlock() {
+            const prevBlock = stack[stack.length - 1];
+            
+            // Ganti sumbu setiap kali spawn
+            axis = (axis === 'x') ? 'z' : 'x';
+            
+            // Tentukan posisi awal (jauh di kiri/kanan atau depan/belakang)
+            const limit = 6;
+            const pos = prevBlock.position.clone();
+            pos.y += CONFIG.boxHeight;
+            pos[axis] = -limit; // Mulai dari sisi negatif
+            direction = 1;      // Bergerak ke positif
+
+            // Dapatkan dimensi blok sebelumnya
+            const width = prevBlock.geometry.parameters.width;
+            const depth = prevBlock.geometry.parameters.depth;
+
+            // Buat blok baru
+            currentBlock = createBlock(pos.x, pos.y, pos.z, width, depth, stack.length);
+            // Simpan ukuran asli untuk referensi saat bergerak
+            currentBlock.userData = { 
+                width: width, 
+                depth: depth,
+                startSpeed: CONFIG.moveSpeed + (score * 0.005) // Sedikit lebih cepat setiap level
+            };
+        }
+
+        function handleInput(e) {
+            // Abaikan input jika game tidak aktif atau klik pada tombol UI
+            if (!gameActive) return;
+            if (e.target.tagName === 'BUTTON') return;
+
+            instructionEl.style.display = 'none';
+
+            // Logika Pemotongan (Slicing Logic)
+            const prevBlock = stack[stack.length - 1];
+            const currBlock = currentBlock;
+
+            const prevPos = prevBlock.position[axis];
+            const currPos = currBlock.position[axis];
+
+            const delta = currPos - prevPos;
+            const absDelta = Math.abs(delta);
+
+            // Ambil ukuran pada sumbu yang sedang aktif
+            const size = (axis === 'x') ? currBlock.userData.width : currBlock.userData.depth;
+
+            // JIKA MELESET TOTAL (Game Over)
+            if (absDelta >= size) {
+                gameOver();
+                return;
+            }
+
+            // HITUNG UKURAN BARU & OVERHANG
+            const remainingSize = size - absDelta;
+            const overlapCenter = prevPos + delta / 2;
+
+            // Update Metadata Ukuran
+            let newWidth = currBlock.userData.width;
+            let newDepth = currBlock.userData.depth;
+            let overhangWidth = 0;
+            let overhangDepth = 0;
+            let overhangX = currBlock.position.x;
+            let overhangZ = currBlock.position.z;
+
+            // Modifikasi geometri berdasarkan sumbu
+            if (axis === 'x') {
+                newWidth = remainingSize;
+                overhangWidth = absDelta;
+                overhangDepth = newDepth;
+                
+                // Set posisi baru blok utama (tengah overlap)
+                currBlock.position.x = overlapCenter;
+                
+                // Tentukan posisi overhang
+                if (delta > 0) {
+                    overhangX = currBlock.position.x + (newWidth / 2) + (overhangWidth / 2);
+                } else {
+                    overhangX = currBlock.position.x - (newWidth / 2) - (overhangWidth / 2);
+                }
+            } else { // axis === 'z'
+                newDepth = remainingSize;
+                overhangDepth = absDelta;
+                overhangWidth = newWidth;
+
+                currBlock.position.z = overlapCenter;
+
+                if (delta > 0) {
+                    overhangZ = currBlock.position.z + (newDepth / 2) + (overhangDepth / 2);
+                } else {
+                    overhangZ = currBlock.position.z - (newDepth / 2) - (overhangDepth / 2);
+                }
+            }
+
+            // 1. UPDATE BLOK SAAT INI (Resize)
+            // Three.js tidak bisa resize geometry dengan mudah, lebih baik buat baru dan hapus lama
+            scene.remove(currBlock);
+            const correctedBlock = createBlock(
+                currBlock.position.x, 
+                currBlock.position.y, 
+                currBlock.position.z, 
+                newWidth, 
+                newDepth, 
+                stack.length // index untuk warna
+            );
+            stack.push(correctedBlock);
+
+            // 2. BUAT PUING JATUH (Overhang)
+            const fallingPart = createOverhang(
+                overhangX, 
+                currBlock.position.y, 
+                overhangZ, 
+                overhangWidth, 
+                overhangDepth, 
+                correctedBlock.material.color
+            );
+            
+            // Tambahkan fisika sederhana ke overhang
+            overhangs.push({
+                mesh: fallingPart,
+                vy: 0, // velocity y
+                rx: Math.random() * 0.1, // rotasi random
+                rz: Math.random() * 0.1
+            });
+
+            // 3. UPDATE SCORE
+            score++;
+            scoreEl.innerText = score;
+
+            // 4. LANJUT KE BLOK BERIKUTNYA
+            spawnNextBlock();
+        }
+
+        function gameOver() {
+            gameActive = false;
+            
+            // Efek jatuh blok terakhir
+            if(currentBlock) {
+                overhangs.push({
+                    mesh: currentBlock,
+                    vy: 0,
+                    rx: Math.random() * 0.05,
+                    rz: Math.random() * 0.05
+                });
+                // Hapus referensi currentBlock agar tidak dirender di loop
+                currentBlock = null; 
+            }
+
+            // Update High Score
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('stackHighScore', highScore);
+                highScoreEl.innerText = `High Score: ${highScore}`;
+            }
+            
+            finalScoreEl.innerText = score;
+            gameOverScreen.classList.add('active');
+        }
+
+        // --- ANIMASI LOOP (RENDER) ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // 1. Gerakkan Blok Aktif (Bolak-balik)
+            if (gameActive && currentBlock) {
+                const speed = currentBlock.userData.startSpeed;
+                const limit = 4; // Batas gerak sebelum balik arah
+
+                currentBlock.position[axis] += speed * direction;
+
+                // Cek batas untuk membalik arah
+                if (currentBlock.position[axis] > limit) {
+                    direction = -1;
+                } else if (currentBlock.position[axis] < -limit) {
+                    direction = 1;
+                }
+            }
+
+            // 2. Animasi Kamera (Lerp agar halus)
+            // Kamera naik mengikuti tinggi stack
+            const targetY = stack.length * CONFIG.boxHeight + CONFIG.cameraOffset;
+            camera.position.y += (targetY - camera.position.y) * 0.1;
+            camera.lookAt(0, (stack.length - 3) * CONFIG.boxHeight, 0); // Selalu fokus sedikit di bawah puncak
+
+            // 3. Fisika Puing Jatuh
+            for (let i = overhangs.length - 1; i >= 0; i--) {
+                const obj = overhangs[i];
+                
+                obj.vy -= 0.02; // Gravitasi
+                obj.mesh.position.y += obj.vy;
+                
+                // Rotasi saat jatuh agar terlihat dramatis
+                obj.mesh.rotation.x += obj.rx;
+                obj.mesh.rotation.z += obj.rz;
+
+                // Hapus jika sudah jauh di bawah (Optimasi Memori)
+                if (obj.mesh.position.y < -20) {
+                    scene.remove(obj.mesh);
+                    obj.mesh.geometry.dispose();
+                    obj.mesh.material.dispose();
+                    overhangs.splice(i, 1);
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Handle Resize Window
         function onWindowResize() {
             const aspect = window.innerWidth / window.innerHeight;
             const d = 10;
             
-            // Update parameter kamera orthographic
             camera.left = -d * aspect;
             camera.right = d * aspect;
             camera.top = d;
@@ -470,68 +581,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // --- Loop Animasi ---
-        let time = 0;
-        
-        function animate() {
-            requestAnimationFrame(animate);
-
-            // 1. Gerakkan blok aktif (paling atas)
-            if (!gameEnded && stack.length > 1) {
-                const topLayer = stack[stack.length - 1];
-                time += speed; // Time increment
-                
-                // Gunakan Math.sin/cos untuk gerakan bolak-balik yang smooth
-                // Jarak 10 unit bolak balik
-                const limit = 10; 
-                // Kita gunakan linear movement ping-pong manual agar kecepatan konstan (lebih adil)
-                // Tapi Math.sin lebih mudah dikoding. Untuk game stack presisi, linear lebih baik.
-                // Mari gunakan Linear PingPong logic sederhana:
-                
-                const frameSpeed = 0.15 + (score * 0.005); // Kecepatan per frame
-                
-                if (topLayer.direction === 'x') {
-                    topLayer.position.x += frameSpeed * direction;
-                    if (topLayer.position.x > limit || topLayer.position.x < -limit) {
-                        direction *= -1; // Balik arah
-                    }
-                } else {
-                    topLayer.position.z += frameSpeed * direction;
-                    if (topLayer.position.z > limit || topLayer.position.z < -limit) {
-                        direction *= -1;
-                    }
-                }
-            }
-
-            // 2. Naikkan Kamera dengan mulus (Lerp)
-            if (stack.length > 0) {
-                const targetY = stack.length * BOX_HEIGHT + 15; // Jaga jarak Y
-                camera.position.y += (targetY - camera.position.y) * 0.05; // Smoothing factor
-            }
-
-            // 3. Animasikan Debris (Potongan Jatuh)
-            overhangs.forEach((obj, index) => {
-                if (!obj.userData.active) return;
-
-                // Gravitasi
-                obj.position.y -= 0.5;
-                // Rotasi saat jatuh
-                obj.rotation.x += obj.userData.velocity.rx;
-                obj.rotation.z += obj.userData.velocity.rz;
-
-                // Hapus jika sudah jauh di bawah
-                if (obj.position.y < -20) {
-                    scene.remove(obj);
-                    obj.userData.active = false;
-                    // Hapus dari array (opsional, untuk performa jangka panjang)
-                    overhangs.splice(index, 1);
-                }
-            });
-
-            renderer.render(scene, camera);
-        }
-
-        // Jalankan Inisialisasi
+        // Mulai Inisialisasi
         init();
 
     </script>

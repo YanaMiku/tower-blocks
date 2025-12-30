@@ -9,6 +9,7 @@
     <!-- Library eksternal -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/TweenMax.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet">
@@ -32,10 +33,10 @@
         }
         #container #score {
             position: absolute;
-            top: 10px;
+            top: 20px;
             width: 100%;
             text-align: center;
-            font-size: 12vh;
+            font-size: 8vh;
             transition: transform 0.5s ease, opacity 0.5s ease;
             color: #eee;
             transform: translateY(-200px) scale(1);
@@ -45,10 +46,10 @@
         }
         #container #high-score {
             position: absolute;
-            top: 70px;
+            top: 12vh;
             width: 100%;
             text-align: center;
-            font-size: 5vh;
+            font-size: 3vh;
             color: #ccc;
             opacity: 0.8;
             z-index: 10;
@@ -62,18 +63,126 @@
             bottom: 0;
             left: 0;
         }
+        
+        /* Kontrol Suara */
+        #sound-control {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        #sound-control:hover {
+            background: rgba(0, 0, 0, 0.7);
+            transform: scale(1.1);
+        }
+        
+        #sound-control i {
+            font-size: 20px;
+            color: #eee;
+        }
+        
+        /* Panel Statistik */
+        #stats-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 10px 15px;
+            z-index: 100;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            min-width: 120px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            color: #eee;
+            font-size: 14px;
+        }
+        
+        .stat-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .stat-label {
+            opacity: 0.8;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        /* Notifikasi Combo */
+        #combo-notification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 5vh;
+            font-weight: bold;
+            color: #ffd700;
+            z-index: 50;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+        
+        /* Level Indicator */
+        #level-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 4vh;
+            font-weight: bold;
+            color: #4CAF50;
+            z-index: 50;
+            pointer-events: none;
+            text-shadow: 0 0 5px rgba(76, 175, 80, 0.8);
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            opacity: 0;
+        }
+        
         #container .game-over {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 85%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             z-index: 20;
+            overflow-y: auto;
+            padding-top: 10vh;
+            padding-bottom: 5vh;
         }
+        
+        .game-over-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 90%;
+            max-width: 600px;
+            padding-bottom: 20px;
+        }
+        
         #container .game-over * {
             transition: opacity 0.8s ease, transform 0.8s ease;
             opacity: 0;
@@ -82,15 +191,76 @@
             text-align: center;
             text-shadow: 2px 2px 5px rgba(0,0,0,0.9);
         }
+        
         #container .game-over h2 {
             margin: 0;
             padding: 0;
             font-size: 10vw;
+            margin-bottom: 10px;
+            line-height: 1.2;
         }
+        
+        @media (min-width: 768px) {
+            #container .game-over h2 {
+                font-size: 5vw;
+            }
+        }
+        
         #container .game-over p {
-            font-size: 5vw;
-            margin: 10px;
+            font-size: 4vw;
+            margin: 5px 0;
+            line-height: 1.3;
         }
+        
+        @media (min-width: 768px) {
+            #container .game-over p {
+                font-size: 2vw;
+            }
+        }
+        
+        .final-stats {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 15px;
+            width: 100%;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .final-stats .stat-item {
+            font-size: 3.5vw;
+            margin-bottom: 8px;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        @media (min-width: 768px) {
+            .final-stats .stat-item {
+                font-size: 1.5vw;
+            }
+        }
+        
+        .restart-instruction {
+            margin-top: 20px;
+            font-size: 4vw;
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        @media (min-width: 768px) {
+            .restart-instruction {
+                font-size: 2vw;
+            }
+        }
+        
         #container .game-ready {
             position: absolute;
             top: 0;
@@ -105,55 +275,402 @@
             background: rgba(34, 34, 34, 0.9);
             transition: opacity 1s ease;
         }
+        
         #container .game-ready #start-button {
             transition: opacity 0.8s ease, transform 0.8s ease;
             opacity: 0;
             transform: translateY(-50px);
             border: 4px solid #eee;
-            padding: 20px 40px;
+            padding: 15px 30px;
             background-color: transparent;
             color: #eee;
-            font-size: 8vw;
+            font-size: 6vw;
             cursor: pointer;
             border-radius: 15px;
+            margin-bottom: 20px;
         }
+        
+        #container .game-ready #difficulty {
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(-30px);
+            transition: opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s;
+        }
+        
+        #container.ready .game-ready #difficulty {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .difficulty-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .difficulty-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #eee;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .difficulty-btn:hover, .difficulty-btn.active {
+            background: rgba(76, 175, 80, 0.5);
+            border-color: #4CAF50;
+            transform: scale(1.05);
+        }
+        
         #container #instructions {
             position: absolute;
             width: 90%;
             left: 5%;
-            bottom: 20vh;
+            bottom: 15vh;
             text-align: center;
             transition: opacity 0.8s ease, transform 0.8s ease;
             opacity: 0;
             color: #ddd;
-            font-size: 4.5vw;
+            font-size: 3.5vw;
+            line-height: 1.4;
             z-index: 10;
             pointer-events: none;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            padding: 0 10px;
         }
+        
         #container #instructions.hide {
             opacity: 0 !important;
         }
+        
         #container.playing #score, #container.resetting #score {
             transform: translateY(0px) scale(1);
         }
+        
         #container.playing #instructions {
             opacity: 1;
             transform: translateY(0);
         }
+        
         #container.ready .game-ready #start-button {
             opacity: 1;
             transform: translateY(0);
         }
+        
         #container.ended #score {
-            transform: translateY(6vh) scale(1.5);
+            transform: translateY(6vh) scale(1.3);
         }
+        
         #container.ended .game-over * {
             opacity: 1;
             transform: translateY(0);
         }
+        
         #container.ended .game-over p {
             transition-delay: 0.3s;
+        }
+        
+        /* Progress Bar */
+        #tower-progress {
+            position: absolute;
+            bottom: 10vh;
+            left: 10%;
+            width: 80%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            z-index: 10;
+        }
+        
+        #tower-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        
+        /* Achievement Notifications */
+        #achievement-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        .achievement {
+            background: rgba(0, 0, 0, 0.85);
+            border-left: 5px solid #ffd700;
+            padding: 12px 15px;
+            border-radius: 0 10px 10px 0;
+            color: #fff;
+            margin-bottom: 10px;
+            transform: translateX(100%);
+            transition: transform 0.5s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        
+        .achievement.show {
+            transform: translateX(0);
+            max-height: 100px;
+            opacity: 1;
+            transition: transform 0.5s ease, max-height 0.5s ease, opacity 0.5s ease;
+        }
+        
+        .achievement.hiding {
+            transform: translateX(100%);
+            max-height: 0;
+            opacity: 0;
+            transition: transform 0.5s ease, max-height 0.5s ease, opacity 0.5s ease;
+        }
+        
+        .achievement-title {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .achievement-desc {
+            font-size: 12px;
+            opacity: 0.9;
+            line-height: 1.3;
+        }
+        
+        /* Achievement Icons */
+        .achievement-icon {
+            display: inline-block;
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        /* Achievement Colors */
+        .achievement-bronze {
+            border-left-color: #cd7f32;
+        }
+        
+        .achievement-bronze .achievement-title {
+            color: #cd7f32;
+        }
+        
+        .achievement-silver {
+            border-left-color: #c0c0c0;
+        }
+        
+        .achievement-silver .achievement-title {
+            color: #c0c0c0;
+        }
+        
+        .achievement-gold {
+            border-left-color: #ffd700;
+        }
+        
+        .achievement-gold .achievement-title {
+            color: #ffd700;
+        }
+        
+        .achievement-platinum {
+            border-left-color: #e5e4e2;
+        }
+        
+        .achievement-platinum .achievement-title {
+            color: #e5e4e2;
+        }
+        
+        .achievement-diamond {
+            border-left-color: #b9f2ff;
+        }
+        
+        .achievement-diamond .achievement-title {
+            color: #b9f2ff;
+        }
+        
+        /* Media Queries untuk perangkat dengan layar kecil */
+        @media (max-height: 600px) {
+            #container #score {
+                font-size: 6vh;
+                top: 15px;
+            }
+            
+            #container #high-score {
+                top: 10vh;
+                font-size: 2.5vh;
+            }
+            
+            #container .game-over h2 {
+                font-size: 8vw;
+            }
+            
+            #container .game-over p {
+                font-size: 3.5vw;
+            }
+            
+            #container #instructions {
+                bottom: 12vh;
+                font-size: 3vw;
+            }
+            
+            #stats-panel {
+                padding: 8px 12px;
+                min-width: 100px;
+            }
+            
+            .stat-item {
+                font-size: 12px;
+            }
+            
+            #achievement-container {
+                width: 250px;
+                top: 15px;
+                right: 15px;
+            }
+        }
+        
+        /* Media Queries untuk perangkat dengan layar sangat kecil */
+        @media (max-height: 400px) {
+            #container #score {
+                font-size: 5vh;
+                top: 10px;
+            }
+            
+            #container #high-score {
+                top: 8vh;
+                font-size: 2vh;
+            }
+            
+            #container .game-over {
+                padding-top: 5vh;
+            }
+            
+            #container .game-over h2 {
+                font-size: 6vw;
+            }
+            
+            #container .game-over p {
+                font-size: 3vw;
+            }
+            
+            #container #instructions {
+                bottom: 10vh;
+                font-size: 2.5vw;
+            }
+            
+            #stats-panel {
+                display: none;
+            }
+            
+            #achievement-container {
+                width: 200px;
+                top: 10px;
+                right: 10px;
+            }
+            
+            .achievement {
+                padding: 8px 10px;
+            }
+            
+            .achievement-title {
+                font-size: 12px;
+            }
+            
+            .achievement-desc {
+                font-size: 10px;
+            }
+        }
+        
+        /* Media Queries untuk perangkat landscape */
+        @media (orientation: landscape) and (max-height: 500px) {
+            #container #score {
+                font-size: 5vh;
+                top: 10px;
+            }
+            
+            #container #high-score {
+                top: 8vh;
+                font-size: 2vh;
+            }
+            
+            #container .game-ready #start-button {
+                font-size: 5vw;
+                padding: 10px 20px;
+            }
+            
+            #container .game-over {
+                padding-top: 5vh;
+                justify-content: flex-start;
+            }
+            
+            #container .game-over h2 {
+                font-size: 6vw;
+            }
+            
+            #container .game-over p {
+                font-size: 3vw;
+            }
+            
+            #container #instructions {
+                bottom: 8vh;
+                font-size: 2.5vw;
+            }
+            
+            #achievement-container {
+                width: 250px;
+            }
+        }
+        
+        /* Media Queries untuk desktop/layar besar */
+        @media (min-width: 768px) {
+            #container #score {
+                font-size: 10vh;
+                top: 30px;
+            }
+            
+            #container #high-score {
+                top: 15vh;
+                font-size: 4vh;
+            }
+            
+            #container .game-ready #start-button {
+                font-size: 5vw;
+                padding: 20px 40px;
+            }
+            
+            #container .game-over h2 {
+                font-size: 5vw;
+            }
+            
+            #container .game-over p {
+                font-size: 2vw;
+            }
+            
+            #container #instructions {
+                bottom: 20vh;
+                font-size: 2.5vw;
+            }
+            
+            #achievement-container {
+                width: 350px;
+            }
+            
+            .achievement {
+                padding: 15px 20px;
+            }
+            
+            .achievement-title {
+                font-size: 16px;
+            }
+            
+            .achievement-desc {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -162,14 +679,88 @@
         <div id="game"></div>
         <div id="score">0</div>
         <div id="high-score">High Score: 0</div>
-        <div id="instructions">Tap layar (atau tekan spasi) untuk menempatkan blok</div>
-        <div class="game-over">
-            <h2>Game Over</h2>
-            <p>Keren sekali!</p>
-            <p>Tap atau tekan spasi untuk mulai lagi</p>
+        <div id="combo-notification"></div>
+        <div id="level-indicator"></div>
+        
+        <!-- Kontrol Suara -->
+        <div id="sound-control">
+            <i class="fas fa-volume-up"></i>
         </div>
+        
+        <!-- Panel Statistik -->
+        <div id="stats-panel">
+            <div class="stat-item">
+                <span class="stat-label">Level:</span>
+                <span class="stat-value" id="level-value">1</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Combo:</span>
+                <span class="stat-value" id="combo-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Perfect:</span>
+                <span class="stat-value" id="perfect-value">0</span>
+            </div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div id="tower-progress">
+            <div id="tower-progress-bar"></div>
+        </div>
+        
+        <!-- Achievement Notifications Container -->
+        <div id="achievement-container">
+            <!-- Achievement notifications will be added here dynamically -->
+        </div>
+        
+        <div id="instructions">Tap layar (atau tekan spasi) untuk menempatkan blok</div>
+        
+        <div class="game-over">
+            <div class="game-over-content">
+                <h2>Game Over</h2>
+                <p>Keren sekali!</p>
+                
+                <div class="final-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Skor Akhir:</span>
+                        <span class="stat-value" id="final-score">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Tinggi Menara:</span>
+                        <span class="stat-value" id="final-height">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Perfect Placement:</span>
+                        <span class="stat-value" id="final-perfect">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Combo Tertinggi:</span>
+                        <span class="stat-value" id="final-combo">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Blok:</span>
+                        <span class="stat-value" id="final-blocks">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Tingkat Kesulitan:</span>
+                        <span class="stat-value" id="final-difficulty">Mudah</span>
+                    </div>
+                </div>
+                
+                <div class="restart-instruction">Tap atau tekan spasi untuk mulai lagi</div>
+            </div>
+        </div>
+        
         <div class="game-ready">
             <div id="start-button">Mulai</div>
+            <div id="difficulty">
+                <p style="color: #eee; margin-bottom: 10px;">Pilih Tingkat Kesulitan:</p>
+                <div class="difficulty-selector">
+                    <div class="difficulty-btn active" data-difficulty="easy">Mudah</div>
+                    <div class="difficulty-btn" data-difficulty="medium">Sedang</div>
+                    <div class="difficulty-btn" data-difficulty="hard">Sulit</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -179,6 +770,504 @@
         // High Score
         var highScore = localStorage.getItem('blockTowerHighScore') || 0;
         document.getElementById('high-score').innerHTML = 'High Score: ' + highScore;
+        
+        // Variabel game state baru
+        var gameStats = {
+            currentLevel: 1,
+            perfectCount: 0,
+            currentCombo: 0,
+            highestCombo: 0,
+            blocksPlaced: 0,
+            soundEnabled: true,
+            difficulty: 'easy',
+            achievements: [],
+            achievementHistory: []
+        };
+        
+        // System suara sederhana
+        var soundSystem = {
+            playPlaceSound: function() {
+                if (!gameStats.soundEnabled) return;
+                
+                try {
+                    var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    var oscillator = audioContext.createOscillator();
+                    var gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 400;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                } catch (e) {
+                    console.log("Audio tidak didukung di browser ini");
+                }
+            },
+            
+            playPerfectSound: function() {
+                if (!gameStats.soundEnabled) return;
+                
+                try {
+                    var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Buat suara yang lebih kompleks untuk perfect placement
+                    for (var i = 0; i < 3; i++) {
+                        var oscillator = audioContext.createOscillator();
+                        var gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.value = 300 + (i * 100);
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.05, audioContext.currentTime + (i * 0.05));
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3 + (i * 0.05));
+                        
+                        oscillator.start(audioContext.currentTime + (i * 0.05));
+                        oscillator.stop(audioContext.currentTime + 0.3 + (i * 0.05));
+                    }
+                } catch (e) {
+                    console.log("Audio tidak didukung di browser ini");
+                }
+            },
+            
+            playGameOverSound: function() {
+                if (!gameStats.soundEnabled) return;
+                
+                try {
+                    var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    var oscillator = audioContext.createOscillator();
+                    var gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 200;
+                    oscillator.type = 'sawtooth';
+                    
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                } catch (e) {
+                    console.log("Audio tidak didukung di browser ini");
+                }
+            },
+            
+            playAchievementSound: function() {
+                if (!gameStats.soundEnabled) return;
+                
+                try {
+                    var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Buat suara achievement
+                    for (var i = 0; i < 5; i++) {
+                        var oscillator = audioContext.createOscillator();
+                        var gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.value = 500 + (i * 100);
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime + (i * 0.05));
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5 + (i * 0.05));
+                        
+                        oscillator.start(audioContext.currentTime + (i * 0.05));
+                        oscillator.stop(audioContext.currentTime + 0.5 + (i * 0.05));
+                    }
+                } catch (e) {
+                    console.log("Audio tidak didukung di browser ini");
+                }
+            }
+        };
+        
+        // Fungsi untuk menampilkan notifikasi combo
+        function showComboNotification(comboCount) {
+            var notification = document.getElementById('combo-notification');
+            var messages = [
+                "Good!",
+                "Great!",
+                "Awesome!",
+                "Excellent!",
+                "Perfect!",
+                "Unbelievable!",
+                "Incredible!",
+                "Legendary!"
+            ];
+            
+            var message = comboCount <= messages.length ? messages[comboCount - 1] : "Godlike!";
+            
+            notification.innerHTML = message + " x" + comboCount;
+            notification.style.opacity = "1";
+            notification.style.transform = "translate(-50%, -50%) scale(1)";
+            
+            // Warna berdasarkan combo
+            var colors = ["#4CAF50", "#2196F3", "#9C27B0", "#FF9800", "#F44336", "#FFD700", "#FF4081", "#9C27B0"];
+            var colorIndex = Math.min(comboCount - 1, colors.length - 1);
+            notification.style.color = colors[colorIndex];
+            notification.style.textShadow = "0 0 10px " + colors[colorIndex];
+            
+            // Animasi keluar
+            setTimeout(function() {
+                notification.style.opacity = "0";
+                notification.style.transform = "translate(-50%, -50%) scale(0.5)";
+            }, 1000);
+        }
+        
+        // Fungsi untuk menampilkan level indicator
+        function showLevelIndicator(level) {
+            var indicator = document.getElementById('level-indicator');
+            indicator.innerHTML = "Level " + level;
+            indicator.style.opacity = "1";
+            indicator.style.transform = "translate(-50%, -50%) scale(1)";
+            
+            setTimeout(function() {
+                indicator.style.opacity = "0";
+                indicator.style.transform = "translate(-50%, -50%) scale(0.5)";
+            }, 1500);
+        }
+        
+        // Fungsi untuk update statistik
+        function updateStats() {
+            document.getElementById('level-value').textContent = gameStats.currentLevel;
+            document.getElementById('combo-value').textContent = gameStats.currentCombo;
+            document.getElementById('perfect-value').textContent = gameStats.perfectCount;
+            
+            // Update progress bar
+            var progress = (gameStats.blocksPlaced % 10) * 10;
+            document.getElementById('tower-progress-bar').style.width = progress + "%";
+        }
+        
+        // Definisi achievement
+        var achievementDefinitions = [
+            // Bronze achievements
+            { 
+                id: "first_tower", 
+                title: "First Tower", 
+                description: "Bangun menara dengan 10 blok!",
+                icon: "🏗️",
+                color: "bronze",
+                condition: function(stats) { return stats.blocksPlaced >= 10; }
+            },
+            { 
+                id: "precision_novice", 
+                title: "Precision Novice", 
+                description: "Dapatkan 5 perfect placement!",
+                icon: "🎯",
+                color: "bronze",
+                condition: function(stats) { return stats.perfectCount >= 5; }
+            },
+            { 
+                id: "combo_beginner", 
+                title: "Combo Beginner", 
+                description: "Dapatkan combo 3x berturut-turut!",
+                icon: "🔥",
+                color: "bronze",
+                condition: function(stats) { return stats.highestCombo >= 3; }
+            },
+            { 
+                id: "speed_runner", 
+                title: "Speed Runner", 
+                description: "Selesaikan 20 blok dalam 1 menit!",
+                icon: "⚡",
+                color: "bronze",
+                condition: function(stats) { return stats.blocksPlaced >= 20 && stats.gameTime && stats.gameTime <= 60000; }
+            },
+            
+            // Silver achievements
+            { 
+                id: "tower_master", 
+                title: "Tower Master", 
+                description: "Bangun menara dengan 50 blok!",
+                icon: "🏢",
+                color: "silver",
+                condition: function(stats) { return stats.blocksPlaced >= 50; }
+            },
+            { 
+                id: "precision_master", 
+                title: "Precision Master", 
+                description: "Dapatkan 15 perfect placement!",
+                icon: "🎯",
+                color: "silver",
+                condition: function(stats) { return stats.perfectCount >= 15; }
+            },
+            { 
+                id: "combo_master", 
+                title: "Combo Master", 
+                description: "Dapatkan combo 10x berturut-turut!",
+                icon: "🔥",
+                color: "silver",
+                condition: function(stats) { return stats.highestCombo >= 10; }
+            },
+            { 
+                id: "sky_high", 
+                title: "Sky High", 
+                description: "Bangun menara setinggi 30 blok!",
+                icon: "☁️",
+                color: "silver",
+                condition: function(stats) { return stats.blocksPlaced >= 30; }
+            },
+            
+            // Gold achievements
+            { 
+                id: "tower_legend", 
+                title: "Tower Legend", 
+                description: "Bangun menara dengan 100 blok!",
+                icon: "🏛️",
+                color: "gold",
+                condition: function(stats) { return stats.blocksPlaced >= 100; }
+            },
+            { 
+                id: "precision_god", 
+                title: "Precision God", 
+                description: "Dapatkan 30 perfect placement!",
+                icon: "🎯",
+                color: "gold",
+                condition: function(stats) { return stats.perfectCount >= 30; }
+            },
+            { 
+                id: "combo_god", 
+                title: "Combo God", 
+                description: "Dapatkan combo 20x berturut-turut!",
+                icon: "🔥",
+                color: "gold",
+                condition: function(stats) { return stats.highestCombo >= 20; }
+            },
+            { 
+                id: "cloud_piercer", 
+                title: "Cloud Piercer", 
+                description: "Bangun menara setinggi 50 blok!",
+                icon: "🌩️",
+                color: "gold",
+                condition: function(stats) { return stats.blocksPlaced >= 50; }
+            },
+            
+            // Platinum achievements
+            { 
+                id: "tower_god", 
+                title: "Tower God", 
+                description: "Bangun menara dengan 200 blok!",
+                icon: "🛕",
+                color: "platinum",
+                condition: function(stats) { return stats.blocksPlaced >= 200; }
+            },
+            { 
+                id: "perfect_run", 
+                title: "Perfect Run", 
+                description: "Bangun menara 25 blok tanpa kesalahan!",
+                icon: "🌟",
+                color: "platinum",
+                condition: function(stats) { return stats.perfectRun && stats.perfectRun >= 25; }
+            },
+            { 
+                id: "heavens_gate", 
+                title: "Heaven's Gate", 
+                description: "Bangun menara setinggi 100 blok!",
+                icon: "🚪",
+                color: "platinum",
+                condition: function(stats) { return stats.blocksPlaced >= 100; }
+            },
+            
+            // Diamond achievements
+            { 
+                id: "impossible_tower", 
+                title: "Impossible Tower", 
+                description: "Bangun menara dengan 500 blok!",
+                icon: "💎",
+                color: "diamond",
+                condition: function(stats) { return stats.blocksPlaced >= 500; }
+            },
+            { 
+                id: "god_of_precision", 
+                title: "God of Precision", 
+                description: "Dapatkan 100 perfect placement!",
+                icon: "👑",
+                color: "diamond",
+                condition: function(stats) { return stats.perfectCount >= 100; }
+            },
+            { 
+                id: "ultimate_combo", 
+                title: "Ultimate Combo", 
+                description: "Dapatkan combo 50x berturut-turut!",
+                icon: "💫",
+                color: "diamond",
+                condition: function(stats) { return stats.highestCombo >= 50; }
+            },
+            
+            // Special achievements
+            { 
+                id: "first_blood", 
+                title: "First Blood", 
+                description: "Selesaikan game pertama Anda!",
+                icon: "🩸",
+                color: "bronze",
+                condition: function(stats) { return stats.gamesPlayed && stats.gamesPlayed >= 1; }
+            },
+            { 
+                id: "persistent_builder", 
+                title: "Persistent Builder", 
+                description: "Mainkan 10 game!",
+                icon: "🔄",
+                color: "silver",
+                condition: function(stats) { return stats.gamesPlayed && stats.gamesPlayed >= 10; }
+            },
+            { 
+                id: "addicted", 
+                title: "Addicted", 
+                description: "Mainkan 50 game!",
+                icon: "❤️",
+                color: "gold",
+                condition: function(stats) { return stats.gamesPlayed && stats.gamesPlayed >= 50; }
+            },
+            { 
+                id: "difficulty_master", 
+                title: "Difficulty Master", 
+                description: "Selesaikan game di semua tingkat kesulitan!",
+                icon: "🏆",
+                color: "platinum",
+                condition: function(stats) { return stats.difficultiesCompleted && 
+                    stats.difficultiesCompleted.includes('easy') && 
+                    stats.difficultiesCompleted.includes('medium') && 
+                    stats.difficultiesCompleted.includes('hard'); }
+            },
+            { 
+                id: "perfect_game", 
+                title: "Perfect Game", 
+                description: "Selesaikan game dengan semua perfect placement!",
+                icon: "✨",
+                color: "diamond",
+                condition: function(stats) { return stats.perfectGame; }
+            }
+        ];
+        
+        // Fungsi untuk menampilkan achievement
+        function showAchievement(achievement) {
+            // Cek apakah achievement sudah pernah didapat
+            if (gameStats.achievementHistory.includes(achievement.id)) return;
+            
+            gameStats.achievementHistory.push(achievement.id);
+            
+            // Simpan achievement history ke localStorage
+            localStorage.setItem('blockTowerAchievements', JSON.stringify(gameStats.achievementHistory));
+            
+            // Mainkan suara achievement
+            soundSystem.playAchievementSound();
+            
+            // Buat elemen achievement
+            var achievementElement = document.createElement('div');
+            achievementElement.className = 'achievement achievement-' + achievement.color;
+            achievementElement.innerHTML = `
+                <div class="achievement-title">
+                    <span class="achievement-icon">${achievement.icon}</span>
+                    ${achievement.title}
+                </div>
+                <div class="achievement-desc">${achievement.description}</div>
+            `;
+            
+            // Tambahkan ke container
+            var container = document.getElementById('achievement-container');
+            container.appendChild(achievementElement);
+            
+            // Trigger reflow untuk memastikan transisi berjalan
+            void achievementElement.offsetWidth;
+            
+            // Tampilkan achievement
+            achievementElement.classList.add('show');
+            
+            // Sembunyikan achievement setelah beberapa detik
+            setTimeout(function() {
+                achievementElement.classList.remove('show');
+                achievementElement.classList.add('hiding');
+                
+                // Hapus elemen setelah animasi selesai
+                setTimeout(function() {
+                    if (achievementElement.parentNode) {
+                        achievementElement.parentNode.removeChild(achievementElement);
+                    }
+                }, 500);
+            }, 3000);
+        }
+        
+        // Fungsi untuk mengecek achievement
+        function checkAchievements() {
+            // Tambahkan statistik tambahan untuk pengecekan
+            var statsForCheck = {
+                blocksPlaced: gameStats.blocksPlaced,
+                perfectCount: gameStats.perfectCount,
+                highestCombo: gameStats.highestCombo,
+                gamesPlayed: localStorage.getItem('blockTowerGamesPlayed') || 0,
+                perfectRun: gameStats.currentCombo > 24 ? gameStats.currentCombo : 0,
+                gameTime: gameStats.gameStartTime ? Date.now() - gameStats.gameStartTime : null,
+                difficulty: gameStats.difficulty
+            };
+            
+            // Cek setiap achievement
+            achievementDefinitions.forEach(function(achievement) {
+                if (!gameStats.achievementHistory.includes(achievement.id) && achievement.condition(statsForCheck)) {
+                    showAchievement(achievement);
+                }
+            });
+        }
+        
+        // Setup kontrol suara
+        document.getElementById('sound-control').addEventListener('click', function() {
+            gameStats.soundEnabled = !gameStats.soundEnabled;
+            var icon = this.querySelector('i');
+            
+            if (gameStats.soundEnabled) {
+                icon.className = 'fas fa-volume-up';
+                this.style.background = 'rgba(0, 0, 0, 0.5)';
+            } else {
+                icon.className = 'fas fa-volume-mute';
+                this.style.background = 'rgba(255, 0, 0, 0.5)';
+            }
+        });
+        
+        // Setup pemilih tingkat kesulitan
+        var difficultyButtons = document.querySelectorAll('.difficulty-btn');
+        difficultyButtons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                // Hapus kelas active dari semua tombol
+                difficultyButtons.forEach(function(b) {
+                    b.classList.remove('active');
+                });
+                
+                // Tambah kelas active ke tombol yang diklik
+                this.classList.add('active');
+                gameStats.difficulty = this.getAttribute('data-difficulty');
+                
+                // Simpan preferensi kesulitan
+                localStorage.setItem('blockTowerDifficulty', gameStats.difficulty);
+            });
+        });
+        
+        // Muat preferensi kesulitan
+        var savedDifficulty = localStorage.getItem('blockTowerDifficulty');
+        if (savedDifficulty) {
+            gameStats.difficulty = savedDifficulty;
+            difficultyButtons.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-difficulty') === savedDifficulty) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        // Muat achievement history
+        var savedAchievements = localStorage.getItem('blockTowerAchievements');
+        if (savedAchievements) {
+            gameStats.achievementHistory = JSON.parse(savedAchievements);
+        }
 
         var Stage = (function () {
             function Stage() {
@@ -238,9 +1327,9 @@
             return Stage;
         }());
 
-        // Sistem Partikel Sederhana
-        function createPerfectParticles(position, color) {
-            var particleCount = 30;
+        // Sistem Partikel Sederhana (diperbarui)
+        function createPerfectParticles(position, color, count = 30) {
+            var particleCount = count;
             var particles = new THREE.Group();
             var geometry = new THREE.SphereGeometry(0.15, 8, 8);
 
@@ -277,6 +1366,18 @@
                 particles.add(particle);
             }
 
+            return particles;
+        }
+        
+        // Sistem partikel untuk penempatan biasa
+        function createPlacementParticles(position, color) {
+            var particles = createPerfectParticles(position, color, 15);
+            
+            // Skala lebih kecil untuk partikel biasa
+            particles.children.forEach(function(particle) {
+                particle.scale.set(0.7, 0.7, 0.7);
+            });
+            
             return particles;
         }
 
@@ -317,7 +1418,15 @@
 
                 this.state = this.index > 1 ? this.STATES.ACTIVE : this.STATES.STOPPED;
 
-                this.speed = -0.1 - (this.index * 0.005);
+                // Sesuaikan kecepatan berdasarkan tingkat kesulitan
+                var baseSpeed = -0.1 - (this.index * 0.005);
+                var difficultyMultiplier = {
+                    'easy': 0.8,
+                    'medium': 1.0,
+                    'hard': 1.3
+                };
+                
+                this.speed = baseSpeed * difficultyMultiplier[gameStats.difficulty];
                 if (this.speed < -4) this.speed = -4;
                 this.direction = this.speed;
 
@@ -477,9 +1586,24 @@
 
             Game.prototype.startGame = function () {
                 if (this.state !== this.STATES.PLAYING) {
+                    // Reset statistik
+                    gameStats.currentLevel = 1;
+                    gameStats.perfectCount = 0;
+                    gameStats.currentCombo = 0;
+                    gameStats.blocksPlaced = 0;
+                    gameStats.highestCombo = 0;
+                    
+                    // Catat waktu mulai game
+                    gameStats.gameStartTime = Date.now();
+                    
+                    updateStats();
+                    
                     this.scoreContainer.innerHTML = '0';
                     this.updateState(this.STATES.PLAYING);
                     this.addBlock();
+                    
+                    // Tampilkan level indicator
+                    showLevelIndicator(gameStats.currentLevel);
                 }
             };
 
@@ -519,9 +1643,28 @@
                 var _this = this;
                 var currentBlock = this.blocks[this.blocks.length - 1];
                 var newBlocks = currentBlock.place();
+                
+                // Update statistik
+                gameStats.blocksPlaced++;
+                
+                // Mainkan suara
+                soundSystem.playPlaceSound();
 
                 // Efek perfect placement
                 if (newBlocks.perfect && newBlocks.placed) {
+                    // Update combo dan perfect count
+                    gameStats.currentCombo++;
+                    gameStats.perfectCount++;
+                    gameStats.highestCombo = Math.max(gameStats.highestCombo, gameStats.currentCombo);
+                    
+                    // Tampilkan notifikasi combo
+                    if (gameStats.currentCombo > 1) {
+                        showComboNotification(gameStats.currentCombo);
+                    }
+                    
+                    // Mainkan suara perfect
+                    soundSystem.playPerfectSound();
+                    
                     // Scale bounce lebih besar
                     newBlocks.placed.scale.set(1.3, 1.3, 1.3);
                     TweenLite.to(newBlocks.placed.scale, 0.4, { x: 1, y: 1, z: 1, ease: Elastic.easeOut.config(1, 0.3) });
@@ -539,10 +1682,32 @@
                     setTimeout(function() {
                         _this.stage.remove(particles);
                     }, 1500);
+                    
+                    // Cek level up
+                    if (gameStats.perfectCount % 5 === 0) {
+                        gameStats.currentLevel++;
+                        showLevelIndicator(gameStats.currentLevel);
+                    }
                 } else if (newBlocks.placed) {
+                    // Reset combo jika bukan perfect
+                    gameStats.currentCombo = 0;
+                    
                     // Bounce kecil biasa
                     newBlocks.placed.scale.set(1.15, 1.15, 1.15);
                     TweenLite.to(newBlocks.placed.scale, 0.2, { x: 1, y: 1, z: 1, ease: Power1.easeOut });
+                    
+                    // Partikel untuk penempatan biasa
+                    var particlePos = new THREE.Vector3(
+                        newBlocks.placed.position.x,
+                        newBlocks.placed.position.y - 1,
+                        newBlocks.placed.position.z
+                    );
+                    var particles = createPlacementParticles(particlePos, currentBlock.color);
+                    this.particleGroup.add(particles);
+                    
+                    setTimeout(function() {
+                        _this.stage.remove(particles);
+                    }, 1500);
                 }
 
                 this.newBlocks.remove(currentBlock.mesh);
@@ -559,6 +1724,12 @@
                     TweenLite.to(newBlocks.chopped.position, 0.8, positionParams);
                     TweenLite.to(newBlocks.chopped.rotation, 0.8, { x: 0.3, z: 0.3, y: Math.random() * 0.6 });
                 }
+                
+                // Update statistik
+                updateStats();
+                
+                // Cek achievement
+                checkAchievements();
 
                 this.addBlock();
             };
@@ -591,6 +1762,44 @@
             };
 
             Game.prototype.endGame = function () {
+                // Mainkan suara game over
+                soundSystem.playGameOverSound();
+                
+                // Update statistik game yang dimainkan
+                var gamesPlayed = parseInt(localStorage.getItem('blockTowerGamesPlayed') || 0) + 1;
+                localStorage.setItem('blockTowerGamesPlayed', gamesPlayed);
+                
+                // Update achievement untuk difficulty
+                var difficultyKey = 'blockTowerDifficulty_' + gameStats.difficulty;
+                var completedDifficulties = JSON.parse(localStorage.getItem('blockTowerDifficulties') || '[]');
+                if (!completedDifficulties.includes(gameStats.difficulty)) {
+                    completedDifficulties.push(gameStats.difficulty);
+                    localStorage.setItem('blockTowerDifficulties', JSON.stringify(completedDifficulties));
+                }
+                
+                // Cek achievement khusus game over
+                gameStats.gamesPlayed = gamesPlayed;
+                gameStats.difficultiesCompleted = completedDifficulties;
+                gameStats.perfectGame = (gameStats.blocksPlaced === gameStats.perfectCount && gameStats.blocksPlaced > 0);
+                
+                // Cek achievement terakhir
+                checkAchievements();
+                
+                // Tampilkan statistik akhir
+                document.getElementById('final-score').textContent = this.blocks.length - 1;
+                document.getElementById('final-height').textContent = this.blocks.length - 1;
+                document.getElementById('final-perfect').textContent = gameStats.perfectCount;
+                document.getElementById('final-combo').textContent = gameStats.highestCombo;
+                document.getElementById('final-blocks').textContent = gameStats.blocksPlaced;
+                
+                // Konversi difficulty ke teks
+                var difficultyTexts = {
+                    'easy': 'Mudah',
+                    'medium': 'Sedang',
+                    'hard': 'Sulit'
+                };
+                document.getElementById('final-difficulty').textContent = difficultyTexts[gameStats.difficulty] || gameStats.difficulty;
+                
                 this.updateState(this.STATES.ENDED);
             };
 

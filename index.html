@@ -1,478 +1,539 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no">
-    <title>Tower Blocks</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D Stack Tower</title>
     <style>
-        @import url("https://fonts.googleapis.com/css?family=Comfortaa");
-
-        html, body {
+        body {
             margin: 0;
             overflow: hidden;
-            height: 100%;
-            width: 100%;
-            position: relative;
-            font-family: "Comfortaa", cursive;
+            background-color: #2c3e50;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: manipulation; /* Mencegah zoom pada double tap */
         }
 
-        #container {
+        #game-container {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
         }
 
-        #container #score {
+        /* UI Overlay */
+        #score-container {
             position: absolute;
             top: 20px;
+            left: 0;
             width: 100%;
             text-align: center;
-            font-size: 10vh;
-            transition: transform 0.5s ease;
-            color: #333344;
-            transform: translateY(-200px) scale(1);
+            pointer-events: none; /* Klik tembus ke canvas */
+            color: white;
+            z-index: 10;
         }
 
-        #container #game {
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
+        #score {
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        #container .game-over {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 85%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #container .game-over * {
-            transition: opacity 0.5s ease, transform 0.5s ease;
-            opacity: 0;
-            transform: translateY(-50px);
-            color: #333344;
-        }
-
-        #container .game-over h2 {
-            margin: 0;
-            padding: 0;
-            font-size: 40px;
-        }
-
-        #container .game-ready {
+        #ui-layer {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            justify-content: space-around;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 20;
+            transition: opacity 0.3s;
         }
 
-        #container .game-ready #start-button {
-            transition: opacity 0.5s ease, transform 0.5s ease;
-            opacity: 0;
-            transform: translateY(-50px);
-            border: 3px solid #333344;
-            padding: 10px 20px;
-            background-color: transparent;
-            color: #333344;
-            font-size: 30px;
-            cursor: pointer;
-        }
-
-        #container #instructions {
-            position: absolute;
-            width: 100%;
-            top: 16vh;
-            left: 0;
+        .menu-box {
+            background: white;
+            padding: 30px 50px;
+            border-radius: 15px;
             text-align: center;
-            transition: opacity 0.5s ease, transform 0.5s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            max-width: 80%;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 2rem;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            outline: none;
+            font-weight: bold;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:hover {
+            background: #fa5252;
+        }
+
+        .hidden {
             opacity: 0;
-            color: #333344;
-            font-size: 3vh;
-        }
-
-        #container #instructions.hide {
-            opacity: 0 !important;
-        }
-
-        #container.playing #score,
-        #container.resetting #score {
-            transform: translateY(0px) scale(1);
-        }
-
-        #container.playing #instructions {
-            opacity: 1;
-        }
-
-        #container.ready .game-ready #start-button {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        #container.ended #score {
-            transform: translateY(6vh) scale(1.5);
-        }
-
-        #container.ended .game-over * {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        #container.ended .game-over p {
-            transition-delay: 0.3s;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <div id="container">
-        <div id="game"></div>
+
+    <!-- Wadah Skor -->
+    <div id="score-container">
         <div id="score">0</div>
-        <div id="instructions">Click (or press the spacebar) to place the block</div>
-        <div class="game-over">
-            <h2>Game Over</h2>
-            <p>You did great, you're the best.</p>
-            <p>Click or spacebar to start again</p>
+    </div>
+
+    <!-- UI Start / Game Over -->
+    <div id="ui-layer">
+        <div class="menu-box" id="start-screen">
+            <h1>3D Stack</h1>
+            <p>Tap atau Spasi untuk menumpuk blok</p>
+            <button id="start-btn">Mulai Main</button>
         </div>
-        <div class="game-ready">
-            <div id="start-button">Start</div>
+        <div class="menu-box hidden" id="game-over-screen">
+            <h1>Game Over</h1>
+            <p>Skor Akhir: <span id="final-score">0</span></p>
+            <button id="restart-btn">Coba Lagi</button>
         </div>
     </div>
 
-    <!-- Three.js r83 (versi yang digunakan di kode asli) -->
-    <script>
-        !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t(e.THREE={})}(this,function(e){"use strict";function t(e,t,n){return e===e?(void 0!==n&&(e=e<=n?e:n),void 0!==t&&(e=e>=t?e:t),e):n}t.prototype.isVector2=!0;var n=new Float32Array(1);function r(e){return 0===e?0:e<0?-1:1}function i(e){return Math.abs(e)< arguments[1]?0:e<0?-1:1}function o(e,t,n){this.width=e,this.height=t,this.depth=n}function a(e,t,n,r,i,o){this.left=e,this.right=t,this.top=n,this.bottom=r,this.near=i,this.far=o}function s(e,t,n,r){this._x=e,this._y=t,this._z=n,this._w=void 0!==r?r:1}function l(e,t,n,r,i,o,a,s,l,u,c,h){this.elements=[e,t,n,r,i,o,a,s,l,u,c,h,0,0,0,1]}function u(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m){this.elements=[e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m]}function c(e,t){this.type=e,this.data=t}function h(e,t,n,r,i,o,a,s,l){this.name=e,this.image=t,this.mapping=n,this.wrapS=r,this.wrapT=i,this.magFilter=o,this.minFilter=a,this.anisotropy=s,this.format=l,this.internalFormat=void 0!==this.format?this.format:-1,this.type=void 0!==this.type?this.type:1009,this.offset=new s(0,0),this.repeat=new s(1,1),this.center=new s(0,0),this.rotation=0,this.generateMipmaps=!0,this.premultiplyAlpha=!1,this.flipY=!0,this.unpackAlignment=4,this.encoding=3000}function f(e,t,n,r,i,o,a,s){this.id=e,this.width=t,this.height=n,this.depth=r,this.type=i,this.format=o,this.magFilter=a,this.minFilter=s,this.wrapS=1001,this.wrapT=1001,this.generateMipmaps=!0,this.anisotropy=1,this.compareFunc=515,this.unpackAlignment=4}function d(e,t,n,r,i,o,a){this.isMaterial=!0,this.name="",this.side=0,this.opacity=1,this.transparent=!1,this.blending=1,this.blendSrc=204,this.blendDst=205,this.blendEquation=100,this.depthTest=!0,this.depthWrite=!0,this.polygonOffset=!1,this.polygonOffsetFactor=0,this.polygonOffsetUnits=0,this.alphaTest=0,this.overdraw=0,this.visible=!0,this.needsUpdate=!0,this.setValues({color:e,roughness:t,metalness:n,emissive:r,map:i,lightMap:o,normalMap:a,envMap:s})}function p(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v){this.isMeshToonMaterial=!0,this.defines={TOON:!0},this.type="MeshToonMaterial",this.color=new m(e||16777215),this.map=t,this.gradientMap=n,this.lightMap=r,this.lightMapIntensity=i,this.aoMap=o,this.aoMapIntensity=a,this.emissive=new m(s||0),this.emissiveMap=l,this.emissiveIntensity=u,this.bumpMap=c,this.bumpScale=h,this.normalMap=f,this.normalMapType=d,this.normalScale=new g(1,1),this.displacementMap=p,this.displacementScale=m,this.displacementBias=y,this.wireframe=b,this.wireframeLinewidth=v,this.fog=!0,this.lights=!0,this.skinning=!1,this.morphTargets=!1,this.morphNormals=!1,this.setValues({})}function m(e){this.isColor=!0,this.r=1,this.g=1,this.b=1,this.set(e)}function g(e,t){this.isVector3=!0,this.x=e||0,this.y=t||0,this.z=void 0!==n?n:0}function y(e,t,n,r){this.isVector4=!0,this.x=e||0,this.y=t||0,this.z=n||0,this.w=void 0!==r?r:1}function b(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,v,x){this.isMatrix4=!0,this.elements=[1,0,0,0,0,1,0,0,0,0,1,0,e,t,n,1],void 0!==r&&this.setPosition(r)}function v(e,t,n){this.width=e,this.height=t,this.depth=n,this.isBox3=!0,this.min=new g(Infinity,Infinity,Infinity),this.max=new g(-Infinity,-Infinity,-Infinity)}function x(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x){this.position=new g(e,t,n),this.rotation=new y(r,i,o,a),this.quaternion=new y,this.scale=new g(s,l,u),this.modelViewMatrix=new b,this.normalMatrix=new l,this.matrix=new b,this.matrixWorld=new b,this.matrixAutoUpdate=!0,this.matrixWorldNeedsUpdate=!1,this.visible=!0,this.castShadow=!1,this.receiveShadow=!1,this.frustumCulled=!0,this.renderOrder=0,this.userData={}}function w(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T){this.isMesh=!0,this.type="Mesh",this.geometry=e,this.material=t,this.drawMode=4,this.setValues({})}function E(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T,M){this.isObject3D=!0,this.type="Object3D",this.parent=null,this.children=[],this.up=new g(0,1,0),this.position=new g,this.rotation=new y,this.quaternion=new y(0,0,0,1),this.scale=new g(1,1,1),this.modelViewMatrix=new b,this.normalMatrix=new l,this.matrix=new b,this.matrixWorld=new b,this.matrixAutoUpdate=!0,this.matrixWorldNeedsUpdate=!1,this.visible=!0,this.castShadow=!1,this.receiveShadow=!1,this.frustumCulled=!0,this.renderOrder=0,this.userData={},this.onBeforeRender=function(){},this.onAfterRender=function(){},this.applyMatrix=function(e){this.matrix.multiplyMatrices(e,this.matrix),this.matrix.decompose(this.position,this.quaternion,this.scale)},this.applyQuaternion=function(e){return this.quaternion.premultiply(e),this},this.setRotationFromAxisAngle=function(e,t){this.quaternion.setFromAxisAngle(e,t)},this.setRotationFromEuler=function(e){this.quaternion.setFromEuler(e)},this.setRotationFromMatrix=function(e){this.quaternion.setFromRotationMatrix(e)},this.setRotationFromQuaternion=function(e){this.quaternion.copy(e)},this.rotateOnAxis=function(){var e=new y;return function(t,n){return e.setFromAxisAngle(t,n),this.quaternion.multiply(e),this}}(this),this.rotateX=function(){var e=new y;return function(t){return e.setFromAxisAngle(new g(1,0,0),t),this.quaternion.multiply(e),this}}(this),this.rotateY=function(){var e=new y;return function(t){return e.setFromAxisAngle(new g(0,1,0),t),this.quaternion.multiply(e),this}}(this),this.rotateZ=function(){var e=new y;return function(t){return e.setFromAxisAngle(new g(0,0,1),t),this.quaternion.multiply(e),this}}(this),this.translateOnAxis=function(){var e=new g;return function(t,n){return e.copy(t).applyQuaternion(this.quaternion),this.position.addScaledVector(e,n),this}}(this),this.translateX=function(){var e=new g;return function(t){return e.set(t,0,0),e.applyQuaternion(this.quaternion),this.position.add(e),this}}(this),this.translateY=function(){var e=new g;return function(t){return e.set(0,t,0),e.applyQuaternion(this.quaternion),this.position.add(e),this}}(this),this.translateZ=function(){var e=new g;return function(t){return e.set(0,0,t),e.applyQuaternion(this.quaternion),this.position.add(e),this}}(this),this.localToWorld=function(e){return e.applyMatrix4(this.matrixWorld)},this.worldToLocal=function(e){return e.applyMatrix4(new b().getInverse(this.matrixWorld))},this.lookAt=function(e,t,n){var r=new b;r.lookAt(e,t||this.position,n||this.up),this.quaternion.setFromRotationMatrix(r)},this.add=function(e){if(e===this)console.warn("THREE.Object3D.add: object can't be added as a child of itself.",e);else if(e&&e.isObject3D){e.parent&&e.parent.remove(e),e.parent=this,this.children.push(e),e.dispatchEvent({type:"added"})}},this.remove=function(e){var t=this.children.indexOf(e);-1!==t&&(e.parent=null,this.children.splice(t,1),e.dispatchEvent({type:"removed"}))},this.traverse=function(e){e(this);for(var t=this.children.length;t--;)this.children[t].traverse(e)},this.traverseVisible=function(e){if(this.visible){e(this);for(var t=this.children.length;t--;)this.children[t].traverseVisible(e)}},this.traverseAncestors=function(e){this.parent&&(e(this.parent),this.parent.traverseAncestors(e))},this.updateMatrix=function(){this.matrix.compose(this.position,this.quaternion,this.scale),this.matrixWorldNeedsUpdate=!0},this.updateMatrixWorld=function(e){this.matrixAutoUpdate&&this.updateMatrix(),(this.matrixWorldNeedsUpdate||e)&&(this.parent?this.matrixWorld.multiplyMatrices(this.parent.matrixWorld,this.matrix):this.matrixWorld.copy(this.matrix),this.matrixWorldNeedsUpdate=!1;for(var t=this.children.length;t--;)this.children[t].updateMatrixWorld(!0))},this.updateWorldMatrix=function(e,t){var n=this.parent;n&&n.updateWorldMatrix(!0,!1),this.matrixAutoUpdate&&this.updateMatrix(),e&&this.parent?this.matrixWorld.multiplyMatrices(this.parent.matrixWorld,this.matrix):this.matrixWorld.copy(this.matrix),this.matrixWorldNeedsUpdate=!1,t&&this.updateMatrixWorld(!0)},this.toJSON=function(){var e={metadata:{version:4.5,type:"Object",generator:"Object3D.toJSON"}};function t(t){return void 0===t?"00000000-0000-0000-0000-000000000000":t}function n(n){var r={};for(var i in n)if(n.hasOwnProperty(i)){var o=n[i];if("object"==typeof o)if(Array.isArray(o)){r[i]=[];for(var a=0;a<o.length;a++)r[i].push(n(o[a]))}else r[i]=n(o);else r[i]=o}return r}return e.object={uuid:this.uuid,type:this.type,name:this.name,castShadow:this.castShadow,receiveShadow:this.receiveShadow,visible:this.visible,userData:this.userData,matrix:this.matrix.toArray()},this.parent&&e.object.parent=t(this.parent.uuid),this.children.length>0&&(e.object.children=[],this.children.forEach(function(n){e.object.children.push(t(n.uuid))})),e},this.clone=function(e){return new this.constructor().copy(this,e)},this.copy=function(e,t){if(this.name=e.name,this.up.copy(e.up),this.position.copy(e.position),this.quaternion.copy(e.quaternion),this.scale.copy(e.scale),this.matrix.copy(e.matrix),this.matrixWorld.copy(e.matrixWorld),this.matrixAutoUpdate=e.matrixAutoUpdate,this.matrixWorldNeedsUpdate=e.matrixWorldNeedsUpdate,this.visible=e.visible,this.castShadow=e.castShadow,this.receiveShadow=e.receiveShadow,this.frustumCulled=e.frustumCulled,this.renderOrder=e.renderOrder,this.userData=JSON.parse(JSON.stringify(e.userData)),t){for(var n=this.children.length,r=0;r<n;r++)this.children[r]=this.children[r].clone(!0);for(var i=e.children.length,o=0;o<i;o++){var a=e.children[o].clone(!0);this.children.push(a)}}return this},this.dispatchEvent=function(e){this._listeners&&this._listeners[e.type]&&this._listeners[e.type].forEach(function(t){t(e)})},this.addEventListener=function(e,t){this._listeners||(this._listeners={}),this._listeners[e]||(this._listeners[e]=[]),-1===this._listeners[e].indexOf(t)&&this._listeners[e].push(t)},this.hasEventListener=function(e,t){return!!this._listeners&&!!this._listeners[e]&&-1!==this._listeners[e].indexOf(t)},this.removeEventListener=function(e,t){if(this._listeners){var n=this._listeners[e];if(n){var r=n.indexOf(t);-1!==r&&n.splice(r,1)}}},this.setValues({})}function T(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T,M){this.isScene=!0,this.type="Scene",this.background=null,this.fog=null,this.overrideMaterial=null,this.autoUpdate=!0,this.setValues({})}function M(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T,M){this.isWebGLRenderer=!0,this.domElement=e,this._canvas=e,this._context=this.getContext(),this._alpha=!1,this._depth=!0,this._stencil=!0,this._antialias=!1,this._premultipliedAlpha=!0,this._preserveDrawingBuffer=!1,this._powerPreference="default",this._physicallyCorrectLights=!1,this.outputEncoding=3000,this.toneMapping=0,this.toneMappingExposure=1,this.sortObjects=!0,this.debug={checkShaderErrors:!0},this.info={memory:{geometries:0,textures:0},render:{frame:0,calls:0,triangles:0,points:0,lines:0},programs:null},this.capabilities={isWebGL2:!1,logarithmicDepthBuffer:!1,floatFragmentTextures:!1,shaderTextureLOD:!1,maxTextures:16,maxVertexTextures:16,maxTextureSize:16384,maxCubemapSize:16384,maxAttributes:16,maxVertexUniforms:16384,maxVaryingVectors:16,maxFragmentUniforms:16384,vertexTextures:!1,floatVertexTextures:!1},this.properties={},this.state=new function(){var e=this;this.buffers={color:new function(){this.setClear=function(e,t,n,r){this.currentClearColor.set(e,t,n,r)}}};this.initAttributes=function(){},this.enableAttribute=function(){},this.disableAttribute=function(){}}(),this.extensions=new function(){var e=this;this.get=function(t){return e[t]||null}}(),this.shadowMap=new function(){this.enabled=!1,this.autoUpdate=!0,this.needsUpdate=!1,this.type=2,this.cullFace=0}(),this.vr=new function(){this.enabled=!1,this.standing=!1}(),this.localClippingEnabled=!1,this.gammaFactor=2,this.maxMorphTargets=8,this.maxMorphNormals=4,this.setPixelRatio(window.devicePixelRatio),this.setSize(t,n,!1),this.setClearColor(0x000000,1),this.clear(),this.render=function(e,t){},this.setAnimationLoop=function(e){},this.animate=function(e){}}function C(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T,M){this.isDirectionalLight=!0,this.type="DirectionalLight",this.color=new m(e||16777215),this.intensity=t||1,this.target=new x,this.castShadow=!1,this.shadow=new function(){this.camera=new a(-5,5,5,-5,0.5,500),this.bias=0,this.radius=1,this.mapSize=new s(512,512)}(),this.setValues({})}function A(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T,M){this.isAmbientLight=!0,this.type="AmbientLight",this.color=new m(e||16777215),this.intensity=t||1,this.setValues({})}function S(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T,M){this.isGroup=!0,this.type="Group",this.setValues({})}function R(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T,M){this.isOrthographicCamera=!0,this.type="OrthographicCamera",this.zoom=1,this.view=null,this.left=t||-1,this.right=n||1,this.top=r||1,this.bottom=i||-1,this.near=o||0.1,this.far=a||2000,this.updateProjectionMatrix()}function L(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T,M){this.isPerspectiveCamera=!0,this.type="PerspectiveCamera",this.focalLength=this.getFocalLength(),this.zoom=1,this.fov=e||50,this.aspect=t||1,this.near=n||0.1,this.far=r||2000,this.view=null,this.filmGauge=35,this.filmOffset=0,this.updateProjectionMatrix()}function O(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T,M){this.isBufferGeometry=!0,this.type="BufferGeometry",this.attributes={},this.morphAttributes={},this.index=null,this.groups=[],this.boundingBox=null,this.boundingSphere=null,this.drawRange={start:0,count:Infinity},this.userData={},this.setIndex(e||null),this.setAttribute("position",t||new c(new Float32Array(0),3)),this.setAttribute("normal",n||new c(new Float32Array(0),3)),this.setAttribute("uv",r||new c(new Float32Array(0),2)),this.computeBoundingBox(),this.computeBoundingSphere()}function _(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T,M){this.isBoxGeometry=!0,this.type="BoxGeometry",this.parameters={width:e,height:t,depth:n,widthSegments:r||1,heightSegments:i||1,depthSegments:o||1},this.fromBufferGeometry(new O(void 0,new c(new Float32Array([e/2,t/2,n/2,e/2,-t/2,n/2,-e/2,t/2,n/2,-e/2,-t/2,n/2,e/2,t/2,-n/2,e/2,-t/2,-n/2,-e/2,t/2,-n/2,-e/2,-t/2,-n/2]),3),new c(new Float32Array([0,0,1,0,0,-1,0,1,0,0,-1,0,1,0,0,-1,0,0]),3),new c(new Float32Array([1,1,0,0,1,0,0,0,1,1,0,1,1,1,0,0,1,0,0,0,1,1,0,1]),2))),this.mergeVertices()}function k(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T,M){this.isGeometry=!0,this.type="Geometry",this.uuid=Math.random().toString(36).substr(2,9),this.vertices=[],this.colors=[],this.faces=[],this.faceVertexUvs=[[]],this.morphTargets=[],this.morphNormals=[],this.skinWeights=[],this.skinIndices=[],this.lineDistances=[],this.boundingBox=null,this.boundingSphere=null,this.verticesNeedUpdate=!1,this.elementsNeedUpdate=!1,this.uvsNeedUpdate=!1,this.normalsNeedUpdate=!1,this.colorsNeedUpdate=!1,this.lineDistancesNeedUpdate=!1,this.groupsNeedUpdate=!1,this.computeFaceNormals(),this.computeVertexNormals()}function P(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T,M){this.isWebGLRenderTarget=!0,this.width=e,this.height=t,this.scissor=new y(0,0,e,t),this.scissorTest=!1,this.viewport=new y(0,0,e,t),this.texture=new h(null,n,r,i,o,a,s,l),this.depthBuffer=void 0===u||u,this.stencilBuffer=void 0===c||c,this.depthTexture=null}e.Vector2=t,e.Vector3=g,e.Vector4=y,e.Color=m,e.Euler=y,e.Quaternion=y,e.Matrix3=l,e.Matrix4=b,e.Box3=v,e.Sphere=function(e,t){this.center=e||new g,this.radius=t||0},e.Ray=function(e,t){this.origin=e||new g,this.direction=t||new g(0,0,-1)},e.Plane=function(e,t){this.normal=e||new g(1,0,0),this.constant=t||0},e.Frustum=function(){this.planes=[new e.Plane,new e.Plane,new e.Plane,new e.Plane,new e.Plane,new e.Plane]},e.Line3=function(e,t){this.start=e||new g,this.end=t||new g},e.Object3D=x,e.Group=S,e.Mesh=w,e.Scene=T,e.Camera=function(e,t,n){x.call(this),this.matrixWorldInverse=new b,this.projectionMatrix=new b,this.projectionMatrixInverse=new b,this.isCamera=!0},e.OrthographicCamera=R,e.PerspectiveCamera=L,e.Light=C,e.AmbientLight=A,e.DirectionalLight=C,e.WebGLRenderer=M,e.BufferAttribute=c,e.BufferGeometry=O,e.Geometry=k,e.BoxGeometry=_,e.MeshToonMaterial=p,e.Material=d,e.Texture=h,e.RenderTarget=f,e.Scene=T,Object.assign(e,{REVISION:"83"})})(THREE);
-    </script>
+    <!-- Canvas Game -->
+    <div id="game-container"></div>
 
-    <!-- TweenMax (GSAP) versi lama yang kompatibel -->
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <script>
-        var TweenLite=function(e,t,n,r,i,o,a,s,l,u,c,h,f,d,p,m,g,y,b,v,x,w,E,T,M,C,A,S,R,L,O,_,k,P){return e.TweenLite=function(e,t,n){},e.TimelineLite=function(){},e.Power1={easeInOut:{}},e}(window);
-        // Minimal stub TweenLite agar kode asli berjalan (animasi tetap smooth karena three.js)
-        TweenLite = { to: function(obj, duration, props) {
-            // Simple fallback animation
-            var start = {};
-            for (var p in props) {
-                if (obj[p] !== undefined) {
-                    start[p] = obj[p];
-                } else if (obj.position && obj.position[p] !== undefined) {
-                    start[p] = obj.position[p];
-                    obj = obj.position;
-                } else if (obj.lookAt && p === 'y') {
-                    start[p] = obj.lookAt.y;
-                    obj = { lookAt: obj.lookAt };
+        /**
+         * 3D STACK GAME
+         * Menggunakan Three.js
+         */
+
+        // --- Variabel Global & Konfigurasi ---
+        let scene, camera, renderer;
+        let ambientLight, dirLight;
+        
+        // State Game
+        let stack = [];     // Menyimpan blok yang sudah tertumpuk
+        let overhangs = []; // Menyimpan potongan yang jatuh (debris)
+        let gameEnded = false;
+        let score = 0;
+        let hueValue = 0;   // Untuk warna pelangi
+
+        // Konstanta Blok
+        const BOX_HEIGHT = 1;
+        const ORIGINAL_BOX_SIZE = 3;
+        let currentSize = { width: ORIGINAL_BOX_SIZE, depth: ORIGINAL_BOX_SIZE };
+        
+        // Variabel Gerakan
+        let speed = 0.15;
+        let axis = 'x'; // 'x' atau 'z'
+        let direction = 1; // 1 atau -1
+        
+        // Referensi UI
+        const scoreEl = document.getElementById('score');
+        const finalScoreEl = document.getElementById('final-score');
+        const uiLayer = document.getElementById('ui-layer');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // --- Inisialisasi ---
+        function init() {
+            // 1. Setup Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xd0e7f9); // Langit biru muda
+            scene.fog = new THREE.Fog(0xd0e7f9, 10, 25);  // Kabut agar transisi horizon halus
+
+            // 2. Setup Kamera (Orthographic agar perspektif isometrik rapi)
+            const aspect = window.innerWidth / window.innerHeight;
+            const d = 10;
+            camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
+            
+            // Posisi isometrik klasik
+            camera.position.set(20, 20, 20);
+            camera.lookAt(0, 0, 0);
+
+            // 3. Setup Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Optimasi performa HP
+            renderer.shadowMap.enabled = true; // Aktifkan bayangan
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('game-container').appendChild(renderer.domElement);
+
+            // 4. Pencahayaan
+            // Cahaya ambient (dasar)
+            ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            // Cahaya Matahari (Directional)
+            dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+            dirLight.position.set(10, 20, 10);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
+            dirLight.shadow.camera.left = -20;
+            dirLight.shadow.camera.right = 20;
+            dirLight.shadow.camera.top = 20;
+            dirLight.shadow.camera.bottom = -20;
+            scene.add(dirLight);
+
+            // 5. Event Listeners
+            window.addEventListener('resize', onWindowResize, false);
+            
+            // Input: Klik mouse dan Sentuh layar
+            document.addEventListener('pointerdown', handleInput);
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') handleInput(e);
+            });
+
+            startBtn.addEventListener('click', startGame);
+            restartBtn.addEventListener('click', startGame);
+
+            // Loop render awal (kosong)
+            renderer.render(scene, camera);
+        }
+
+        // --- Logika Gameplay ---
+
+        function startGame() {
+            // Reset Variable
+            stack.forEach(obj => scene.remove(obj));
+            overhangs.forEach(obj => scene.remove(obj));
+            
+            stack = [];
+            overhangs = [];
+            score = 0;
+            gameEnded = false;
+            hueValue = 0;
+            currentSize = { width: ORIGINAL_BOX_SIZE, depth: ORIGINAL_BOX_SIZE };
+            axis = 'x';
+            direction = 1;
+            speed = 0.15;
+
+            scoreEl.innerText = score;
+            
+            // Reset Kamera
+            camera.position.set(20, 20, 20);
+            camera.lookAt(0, 0, 0);
+
+            // Sembunyikan UI
+            uiLayer.style.opacity = '0';
+            setTimeout(() => {
+                startScreen.classList.add('hidden');
+                gameOverScreen.classList.add('hidden');
+                uiLayer.style.display = 'none'; // Benar-benar hilangkan agar bisa klik canvas
+            }, 300);
+
+            // Tambahkan Base (Lantai Awal)
+            addLayer(0, 0, ORIGINAL_BOX_SIZE, ORIGINAL_BOX_SIZE, false); // false = tidak bergerak
+            
+            // Tambahkan Layer Pertama yang bergerak
+            addLayer(-10, 0, ORIGINAL_BOX_SIZE, ORIGINAL_BOX_SIZE, true); // mulai dari posisi jauh
+
+            // Mulai Loop Animasi
+            if (!renderer.info.autoClear) animate(); // Cek sederhana agar tidak double loop
+            else animate();
+        }
+
+        function addLayer(x, z, width, depth, moving = true) {
+            const y = stack.length * BOX_HEIGHT; // Posisi Y berdasarkan tumpukan
+            
+            // Buat Mesh
+            const layer = createBlock(x, y, z, width, depth, hueValue);
+            layer.direction = axis; // Simpan axis gerakan saat ini (x atau z)
+            
+            scene.add(layer);
+            stack.push(layer);
+
+            if (moving) {
+                // Set posisi awal untuk animasi bolak-balik
+                // Kita set posisi agak jauh agar terlihat masuk layar
+                if (axis === 'x') {
+                    layer.position.x = -10;
+                } else {
+                    layer.position.z = -10;
                 }
+            } else {
+                // Base block (tidak bergerak)
+                hueValue += 5; 
             }
-            var startTime = performance.now();
-            var animate = function() {
-                var elapsed = (performance.now() - startTime) / (duration * 1000);
-                if (elapsed >= 1) elapsed = 1;
-                for (var p in props) {
-                    var val = start[p] + (props[p] - start[p]) * elapsed;
-                    if (obj.position) obj.position[p] = val;
-                    else if (obj.lookAt) obj.lookAt[p] = val;
-                    else obj[p] = val;
-                }
-                if (elapsed < 1) requestAnimationFrame(animate);
+        }
+
+        /**
+         * Fungsi membuat Mesh Blok Visual
+         * Di sini tempat integrasi GLTFLoader jika ingin model kustom
+         */
+        function createBlock(x, y, z, width, depth, hue) {
+            // Warna pelangi halus
+            const color = new THREE.Color(`hsl(${hue}, 80%, 60%)`);
+            
+            // --- [GLTFLoader Integration Note] ---
+            // Jika ingin menggunakan model 3D:
+            // 1. Load model di `init()` dan simpan di variabel global.
+            // 2. Di sini, clone model tersebut: `let mesh = model.clone();`
+            // 3. Scale mesh agar sesuai dengan `width` dan `depth`:
+            //    mesh.scale.set(width / originalModelSize, BOX_HEIGHT, depth / originalModelSize);
+            // 4. Set material color jika perlu.
+            // -------------------------------------
+
+            // Menggunakan Three.js Geometry standar
+            const geometry = new THREE.BoxGeometry(width, BOX_HEIGHT, depth);
+            const material = new THREE.MeshLambertMaterial({ color: color });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(x, y, z);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            // Simpan properti dimensi untuk logika pemotongan
+            mesh.userData = { width, depth };
+
+            return mesh;
+        }
+
+        function handleInput(event) {
+            // Jangan proses jika klik pada UI menu atau game sudah selesai
+            if (gameEnded) return;
+            if (event.type === 'pointerdown' && event.target.tagName === 'BUTTON') return;
+            // Cegah klik tembus saat UI masih fade-out
+            if (uiLayer.style.opacity !== '0' && uiLayer.style.display !== 'none') return;
+
+            const topLayer = stack[stack.length - 1];
+            const prevLayer = stack[stack.length - 2];
+
+            // Jika ini blok pertama (di atas base), jalankan logika
+            if (stack.length >= 2) {
+                const moveDelta = time * speed; // Kecepatan saat ini
+                
+                // Hitung posisi relatif dan overlap
+                // Logika inti pemotongan
+                splitBlock(topLayer, prevLayer);
+            }
+        }
+
+        function splitBlock(topLayer, prevLayer) {
+            const direction = topLayer.direction; // 'x' atau 'z'
+            
+            // Hitung selisih posisi
+            const delta = topLayer.position[direction] - prevLayer.position[direction];
+            const overhangSize = Math.abs(delta);
+            
+            // Dimensi yang relevan (width untuk X, depth untuk Z)
+            const size = direction === 'x' ? topLayer.userData.width : topLayer.userData.depth;
+            
+            const overlap = size - overhangSize;
+
+            if (overlap > 0) {
+                // --- BERHASIL (Masih ada sisa blok) ---
+                
+                // Potong Ukuran
+                cutBox(topLayer, overlap, delta, direction);
+                
+                // Update Skor
+                score++;
+                scoreEl.innerText = score;
+                hueValue += 5; // Geser warna
+
+                // Tambah kecepatan sedikit (makin tinggi makin cepat)
+                if(score % 5 === 0) speed += 0.01;
+
+                // Ganti Axis gerakan untuk blok berikutnya
+                axis = axis === 'x' ? 'z' : 'x';
+
+                // Hitung dimensi blok baru
+                const nextX = direction === 'x' ? topLayer.position.x : topLayer.position.x;
+                const nextZ = direction === 'z' ? topLayer.position.z : topLayer.position.z;
+                
+                // Current Size global diperbarui di fungsi cutBox
+                
+                // Spawn blok baru di atasnya
+                addLayer(nextX, nextZ, currentSize.width, currentSize.depth);
+
+            } else {
+                // --- GAGAL (Meleset total) ---
+                endGame();
+            }
+        }
+
+        function cutBox(topLayer, overlap, delta, axisType) {
+            const currentW = topLayer.userData.width;
+            const currentD = topLayer.userData.depth;
+
+            // Update metadata ukuran global
+            if (axisType === 'x') {
+                currentSize.width = overlap;
+                // Posisi baru blok yang tersisa (di tengah area overlap)
+                topLayer.scale.x = overlap / currentW;
+                topLayer.position.x -= delta / 2;
+                topLayer.userData.width = overlap;
+
+                // Buat Potongan Jatuh (Debris)
+                const overhangShift = (overlap / 2 + (currentW - overlap) / 2) * Math.sign(delta);
+                const overhangX = topLayer.position.x + overhangShift;
+                const overhangW = currentW - overlap;
+                addOverhang(overhangX, topLayer.position.y, topLayer.position.z, overhangW, currentD, 'x');
+
+            } else { // axisType === 'z'
+                currentSize.depth = overlap;
+                // Posisi baru
+                topLayer.scale.z = overlap / currentD;
+                topLayer.position.z -= delta / 2;
+                topLayer.userData.depth = overlap;
+
+                // Buat Potongan Jatuh
+                const overhangShift = (overlap / 2 + (currentD - overlap) / 2) * Math.sign(delta);
+                const overhangZ = topLayer.position.z + overhangShift;
+                const overhangD = currentD - overlap;
+                addOverhang(topLayer.position.x, topLayer.position.y, overhangZ, currentW, overhangD, 'z');
+            }
+            
+            // Visual: Update Texture/Geometry sejati (opsional, tapi scaling sudah cukup visual)
+            // ThreeJS scaling tidak mengubah geometri bounding box asli, tapi visualnya benar.
+        }
+
+        function addOverhang(x, y, z, width, depth, axisType) {
+            const color = stack[stack.length-1].material.color;
+            const material = new THREE.MeshLambertMaterial({ color: color });
+            const geometry = new THREE.BoxGeometry(width, BOX_HEIGHT, depth);
+            const mesh = new THREE.Mesh(geometry, material);
+            
+            mesh.position.set(x, y, z);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            
+            // Data fisika sederhana untuk animasi jatuh
+            mesh.userData = {
+                velocity: { y: 0, rx: Math.random() * 0.2 - 0.1, rz: Math.random() * 0.2 - 0.1 },
+                active: true
             };
-            animate();
-        }};
-    </script>
 
-    <script>
-        "use strict";
-        console.clear();
+            overhangs.push(mesh);
+            scene.add(mesh);
+        }
 
-        class Stage {
-            constructor() {
-                this.render = function () {
-                    this.renderer.render(this.scene, this.camera);
-                };
-                this.add = function (elem) {
-                    this.scene.add(elem);
-                };
-                this.remove = function (elem) {
-                    this.scene.remove(elem);
-                };
-                this.container = document.getElementById('game');
-                this.renderer = new THREE.WebGLRenderer({
-                    antialias: true,
-                    alpha: false
-                });
-                this.renderer.setSize(window.innerWidth, window.innerHeight);
-                this.renderer.setClearColor('#D0CBC7', 1);
-                this.container.appendChild(this.renderer.domElement);
-                this.scene = new THREE.Scene();
-                let aspect = window.innerWidth / window.innerHeight;
-                let d = 20;
-                this.camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, -100, 1000);
-                this.camera.position.x = 2;
-                this.camera.position.y = 2;
-                this.camera.position.z = 2;
-                this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-                this.light = new THREE.DirectionalLight(0xffffff, 0.5);
-                this.light.position.set(0, 499, 0);
-                this.scene.add(this.light);
-                this.softLight = new THREE.AmbientLight(0xffffff, 0.4);
-                this.scene.add(this.softLight);
-                window.addEventListener('resize', () => this.onResize());
-                this.onResize();
-            }
-            setCamera(y, speed = 0.3) {
-                TweenLite.to(this.camera.position, speed, { y: y + 4, ease: Power1.easeInOut });
-                TweenLite.to(this.camera.lookAt, speed, { y: y, ease: Power1.easeInOut });
-            }
-            onResize() {
-                let viewSize = 30;
-                this.renderer.setSize(window.innerWidth, window.innerHeight);
-                this.camera.left = window.innerWidth / -viewSize;
-                this.camera.right = window.innerWidth / viewSize;
-                this.camera.top = window.innerHeight / viewSize;
-                this.camera.bottom = window.innerHeight / -viewSize;
-                this.camera.updateProjectionMatrix();
+        function endGame() {
+            gameEnded = true;
+            finalScoreEl.innerText = score;
+            
+            // Tampilkan Menu Game Over
+            uiLayer.style.display = 'flex';
+            uiLayer.style.opacity = '1';
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.remove('hidden');
+
+            // Efek jatuh blok terakhir
+            const topLayer = stack.pop();
+            if(topLayer) {
+                scene.remove(topLayer);
+                addOverhang(topLayer.position.x, topLayer.position.y, topLayer.position.z, topLayer.userData.width, topLayer.userData.depth, axis);
             }
         }
 
-        class Block {
-            constructor(block) {
-                this.STATES = { ACTIVE: 'active', STOPPED: 'stopped', MISSED: 'missed' };
-                this.MOVE_AMOUNT = 12;
-                this.dimension = { width: 0, height: 0, depth: 0 };
-                this.position = { x: 0, y: 0, z: 0 };
-                this.targetBlock = block;
-                this.index = (this.targetBlock ? this.targetBlock.index : 0) + 1;
-                this.workingPlane = this.index % 2 ? 'x' : 'z';
-                this.workingDimension = this.index % 2 ? 'width' : 'depth';
-                this.dimension.width = this.targetBlock ? this.targetBlock.dimension.width : 10;
-                this.dimension.height = this.targetBlock ? this.targetBlock.dimension.height : 2;
-                this.dimension.depth = this.targetBlock ? this.targetBlock.dimension.depth : 10;
-                this.position.x = this.targetBlock ? this.targetBlock.position.x : 0;
-                this.position.y = this.dimension.height * this.index;
-                this.position.z = this.targetBlock ? this.targetBlock.position.z : 0;
-                this.colorOffset = this.targetBlock ? this.targetBlock.colorOffset : Math.round(Math.random() * 100);
-                if (!this.targetBlock) {
-                    this.color = 0x333344;
+        function onWindowResize() {
+            const aspect = window.innerWidth / window.innerHeight;
+            const d = 10;
+            
+            // Update parameter kamera orthographic
+            camera.left = -d * aspect;
+            camera.right = d * aspect;
+            camera.top = d;
+            camera.bottom = -d;
+            
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Loop Animasi ---
+        let time = 0;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // 1. Gerakkan blok aktif (paling atas)
+            if (!gameEnded && stack.length > 1) {
+                const topLayer = stack[stack.length - 1];
+                time += speed; // Time increment
+                
+                // Gunakan Math.sin/cos untuk gerakan bolak-balik yang smooth
+                // Jarak 10 unit bolak balik
+                const limit = 10; 
+                // Kita gunakan linear movement ping-pong manual agar kecepatan konstan (lebih adil)
+                // Tapi Math.sin lebih mudah dikoding. Untuk game stack presisi, linear lebih baik.
+                // Mari gunakan Linear PingPong logic sederhana:
+                
+                const frameSpeed = 0.15 + (score * 0.005); // Kecepatan per frame
+                
+                if (topLayer.direction === 'x') {
+                    topLayer.position.x += frameSpeed * direction;
+                    if (topLayer.position.x > limit || topLayer.position.x < -limit) {
+                        direction *= -1; // Balik arah
+                    }
                 } else {
-                    let offset = this.index + this.colorOffset;
-                    var r = Math.sin(0.3 * offset) * 55 + 200;
-                    var g = Math.sin(0.3 * offset + 2) * 55 + 200;
-                    var b = Math.sin(0.3 * offset + 4) * 55 + 200;
-                    this.color = new THREE.Color(r / 255, g / 255, b / 255);
-                }
-                this.state = this.index > 1 ? this.STATES.ACTIVE : this.STATES.STOPPED;
-                this.speed = -0.1 - (this.index * 0.005);
-                if (this.speed < -4) this.speed = -4;
-                this.direction = this.speed;
-                let geometry = new THREE.BoxGeometry(this.dimension.width, this.dimension.height, this.dimension.depth);
-                geometry.applyMatrix(new THREE.Matrix4().makeTranslation(this.dimension.width / 2, this.dimension.height / 2, this.dimension.depth / 2));
-                this.material = new THREE.MeshToonMaterial({ color: this.color, shading: THREE.FlatShading });
-                this.mesh = new THREE.Mesh(geometry, this.material);
-                this.mesh.position.set(this.position.x, this.position.y + (this.state == this.STATES.ACTIVE ? 0 : 0), this.position.z);
-                if (this.state == this.STATES.ACTIVE) {
-                    this.position[this.workingPlane] = Math.random() > 0.5 ? -this.MOVE_AMOUNT : this.MOVE_AMOUNT;
-                }
-            }
-            reverseDirection() {
-                this.direction = this.direction > 0 ? this.speed : Math.abs(this.speed);
-            }
-            place() {
-                this.state = this.STATES.STOPPED;
-                let overlap = this.targetBlock.dimension[this.workingDimension] - Math.abs(this.position[this.workingPlane] - this.targetBlock.position[this.workingPlane]);
-                let blocksToReturn = {
-                    plane: this.workingPlane,
-                    direction: this.direction
-                };
-                if (this.dimension[this.workingDimension] - overlap < 0.3) {
-                    overlap = this.dimension[this.workingDimension];
-                    blocksToReturn.bonus = true;
-                    this.position.x = this.targetBlock.position.x;
-                    this.position.z = this.targetBlock.position.z;
-                    this.dimension.width = this.targetBlock.dimension.width;
-                    this.dimension.depth = this.targetBlock.dimension.depth;
-                }
-                if (overlap > 0) {
-                    let choppedDimensions = { width: this.dimension.width, height: this.dimension.height, depth: this.dimension.depth };
-                    choppedDimensions[this.workingDimension] -= overlap;
-                    this.dimension[this.workingDimension] = overlap;
-                    let placedGeometry = new THREE.BoxGeometry(this.dimension.width, this.dimension.height, this.dimension.depth);
-                    placedGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(this.dimension.width / 2, this.dimension.height / 2, this.dimension.depth / 2));
-                    let placedMesh = new THREE.Mesh(placedGeometry, this.material);
-                    let choppedGeometry = new THREE.BoxGeometry(choppedDimensions.width, choppedDimensions.height, choppedDimensions.depth);
-                    choppedGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(choppedDimensions.width / 2, choppedDimensions.height / 2, choppedDimensions.depth / 2));
-                    let choppedMesh = new THREE.Mesh(choppedGeometry, this.material);
-                    let choppedPosition = {
-                        x: this.position.x,
-                        y: this.position.y,
-                        z: this.position.z
-                    };
-                    if (this.position[this.workingPlane] < this.targetBlock.position[this.workingPlane]) {
-                        this.position[this.workingPlane] = this.targetBlock.position[this.workingPlane];
-                    } else {
-                        choppedPosition[this.workingPlane] += overlap;
+                    topLayer.position.z += frameSpeed * direction;
+                    if (topLayer.position.z > limit || topLayer.position.z < -limit) {
+                        direction *= -1;
                     }
-                    placedMesh.position.set(this.position.x, this.position.y, this.position.z);
-                    choppedMesh.position.set(choppedPosition.x, choppedPosition.y, choppedPosition.z);
-                    blocksToReturn.placed = placedMesh;
-                    if (!blocksToReturn.bonus)
-                        blocksToReturn.chopped = choppedMesh;
-                } else {
-                    this.state = this.STATES.MISSED;
-                }
-                this.dimension[this.workingDimension] = overlap;
-                return blocksToReturn;
-            }
-            tick() {
-                if (this.state == this.STATES.ACTIVE) {
-                    let value = this.position[this.workingPlane];
-                    if (value > this.MOVE_AMOUNT || value < -this.MOVE_AMOUNT)
-                        this.reverseDirection();
-                    this.position[this.workingPlane] += this.direction;
-                    this.mesh.position[this.workingPlane] = this.position[this.workingPlane];
                 }
             }
+
+            // 2. Naikkan Kamera dengan mulus (Lerp)
+            if (stack.length > 0) {
+                const targetY = stack.length * BOX_HEIGHT + 15; // Jaga jarak Y
+                camera.position.y += (targetY - camera.position.y) * 0.05; // Smoothing factor
+            }
+
+            // 3. Animasikan Debris (Potongan Jatuh)
+            overhangs.forEach((obj, index) => {
+                if (!obj.userData.active) return;
+
+                // Gravitasi
+                obj.position.y -= 0.5;
+                // Rotasi saat jatuh
+                obj.rotation.x += obj.userData.velocity.rx;
+                obj.rotation.z += obj.userData.velocity.rz;
+
+                // Hapus jika sudah jauh di bawah
+                if (obj.position.y < -20) {
+                    scene.remove(obj);
+                    obj.userData.active = false;
+                    // Hapus dari array (opsional, untuk performa jangka panjang)
+                    overhangs.splice(index, 1);
+                }
+            });
+
+            renderer.render(scene, camera);
         }
 
-        class Game {
-            constructor() {
-                this.STATES = {
-                    'LOADING': 'loading',
-                    'PLAYING': 'playing',
-                    'READY': 'ready',
-                    'ENDED': 'ended',
-                    'RESETTING': 'resetting'
-                };
-                this.blocks = [];
-                this.state = this.STATES.LOADING;
-                this.stage = new Stage();
-                this.mainContainer = document.getElementById('container');
-                this.scoreContainer = document.getElementById('score');
-                this.startButton = document.getElementById('start-button');
-                this.instructions = document.getElementById('instructions');
-                this.scoreContainer.innerHTML = '0';
-                this.newBlocks = new THREE.Group();
-                this.placedBlocks = new THREE.Group();
-                this.choppedBlocks = new THREE.Group();
-                this.stage.add(this.newBlocks);
-                this.stage.add(this.placedBlocks);
-                this.stage.add(this.choppedBlocks);
-                this.addBlock();
-                this.tick();
-                this.updateState(this.STATES.READY);
-                document.addEventListener('keydown', e => {
-                    if (e.keyCode == 32) this.onAction();
-                });
-                document.addEventListener('click', e => {
-                    this.onAction();
-                });
-                document.addEventListener('touchstart', e => {
-                    e.preventDefault();
-                });
-            }
-            updateState(newState) {
-                for (let key in this.STATES)
-                    this.mainContainer.classList.remove(this.STATES[key]);
-                this.mainContainer.classList.add(newState);
-                this.state = newState;
-            }
-            onAction() {
-                switch (this.state) {
-                    case this.STATES.READY:
-                        this.startGame();
-                        break;
-                    case this.STATES.PLAYING:
-                        this.placeBlock();
-                        break;
-                    case this.STATES.ENDED:
-                        this.restartGame();
-                        break;
-                }
-            }
-            startGame() {
-                if (this.state != this.STATES.PLAYING) {
-                    this.scoreContainer.innerHTML = '0';
-                    this.updateState(this.STATES.PLAYING);
-                    this.addBlock();
-                }
-            }
-            restartGame() {
-                this.updateState(this.STATES.RESETTING);
-                let oldBlocks = this.placedBlocks.children;
-                let removeSpeed = 0.2;
-                let delayAmount = 0.02;
-                for (let i = 0; i < oldBlocks.length; i++) {
-                    TweenLite.to(oldBlocks[i].scale, removeSpeed, { x: 0, y: 0, z: 0, delay: (oldBlocks.length - i) * delayAmount, ease: Power1.easeIn });
-                    TweenLite.to(oldBlocks[i].rotation, removeSpeed, { y: 0.5, delay: (oldBlocks.length - i) * delayAmount, ease: Power1.easeIn });
-                }
-                let cameraMoveSpeed = removeSpeed * 2 + (oldBlocks.length * delayAmount);
-                this.stage.setCamera(2, cameraMoveSpeed);
-                let countdown = { value: this.blocks.length - 1 };
-                TweenLite.to(countdown, cameraMoveSpeed, {
-                    value: 0,
-                    onUpdate: () => {
-                        this.scoreContainer.innerHTML = String(Math.round(countdown.value));
-                    }
-                });
-                this.blocks = this.blocks.slice(0, 1);
-                setTimeout(() => {
-                    this.startGame();
-                }, cameraMoveSpeed * 1000);
-            }
-            placeBlock() {
-                let currentBlock = this.blocks[this.blocks.length - 1];
-                let newBlocks = currentBlock.place();
-                this.newBlocks.remove(currentBlock.mesh);
-                if (newBlocks.placed) this.placedBlocks.add(newBlocks.placed);
-                if (newBlocks.chopped) {
-                    this.choppedBlocks.add(newBlocks.chopped);
-                    let positionParams = { y: '-=30', ease: Power1.easeIn, onComplete: () => this.choppedBlocks.remove(newBlocks.chopped) };
-                    let rotateRandomness = 10;
-                    let rotationParams = {
-                        delay: 0.05,
-                        x: newBlocks.plane == 'z' ? ((Math.random() * rotateRandomness) - (rotateRandomness / 2)) : 0.1,
-                        z: newBlocks.plane == 'x' ? ((Math.random() * rotateRandomness) - (rotateRandomness / 2)) : 0.1,
-                        y: Math.random() * 0.1,
-                    };
-                    if (newBlocks.chopped.position[newBlocks.plane] > newBlocks.placed.position[newBlocks.plane]) {
-                        positionParams[newBlocks.plane] = '+=' + (40 * Math.abs(newBlocks.direction));
-                    } else {
-                        positionParams[newBlocks.plane] = '-=' + (40 * Math.abs(newBlocks.direction));
-                    }
-                    TweenLite.to(newBlocks.chopped.position, 1, positionParams);
-                    TweenLite.to(newBlocks.chopped.rotation, 1, rotationParams);
-                }
-                this.addBlock();
-            }
-            addBlock() {
-                let lastBlock = this.blocks[this.blocks.length - 1];
-                if (lastBlock && lastBlock.state == lastBlock.STATES.MISSED) {
-                    return this.endGame();
-                }
-                this.scoreContainer.innerHTML = String(this.blocks.length - 1);
-                let newKidOnTheBlock = new Block(lastBlock);
-                this.newBlocks.add(newKidOnTheBlock.mesh);
-                this.blocks.push(newKidOnTheBlock);
-                this.stage.setCamera(this.blocks.length * 2);
-                if (this.blocks.length >= 5) this.instructions.classList.add('hide');
-            }
-            endGame() {
-                this.updateState(this.STATES.ENDED);
-            }
-            tick() {
-                this.blocks[this.blocks.length - 1].tick();
-                this.stage.render();
-                requestAnimationFrame(() => { this.tick(); });
-            }
-        }
+        // Jalankan Inisialisasi
+        init();
 
-        let game = new Game();
     </script>
 </body>
 </html>

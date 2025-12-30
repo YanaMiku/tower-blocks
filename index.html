@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Block Tower</title>
 
     <!-- Library eksternal -->
@@ -16,25 +16,44 @@
     <style>
         html, body {
             margin: 0;
+            padding: 0;
             overflow: hidden;
             height: 100%;
             width: 100%;
             position: relative;
             font-family: 'Comfortaa', cursive;
+            touch-action: manipulation;
+            background: #222;
         }
         #container {
             width: 100%;
             height: 100%;
+            position: relative;
         }
         #container #score {
             position: absolute;
-            top: 20px;
+            top: 10px;
             width: 100%;
             text-align: center;
-            font-size: 10vh;
-            transition: transform 0.5s ease;
-            color: #334;
-            transform: translatey(-200px) scale(1);
+            font-size: 12vh;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            color: #eee;
+            transform: translateY(-200px) scale(1);
+            z-index: 10;
+            pointer-events: none;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        #container #high-score {
+            position: absolute;
+            top: 70px;
+            width: 100%;
+            text-align: center;
+            font-size: 5vh;
+            color: #ccc;
+            opacity: 0.8;
+            z-index: 10;
+            pointer-events: none;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
         }
         #container #game {
             position: absolute;
@@ -53,17 +72,24 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            z-index: 20;
         }
         #container .game-over * {
-            transition: opacity 0.5s ease, transform 0.5s ease;
+            transition: opacity 0.8s ease, transform 0.8s ease;
             opacity: 0;
-            transform: translatey(-50px);
-            color: #334;
+            transform: translateY(-50px);
+            color: #eee;
+            text-align: center;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.9);
         }
         #container .game-over h2 {
             margin: 0;
             padding: 0;
-            font-size: 40px;
+            font-size: 10vw;
+        }
+        #container .game-over p {
+            font-size: 5vw;
+            margin: 10px;
         }
         #container .game-ready {
             position: absolute;
@@ -74,48 +100,57 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-around;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(34, 34, 34, 0.9);
+            transition: opacity 1s ease;
         }
         #container .game-ready #start-button {
-            transition: opacity 0.5s ease, transform 0.5s ease;
+            transition: opacity 0.8s ease, transform 0.8s ease;
             opacity: 0;
-            transform: translatey(-50px);
-            border: 3px solid #334;
-            padding: 10px 20px;
+            transform: translateY(-50px);
+            border: 4px solid #eee;
+            padding: 20px 40px;
             background-color: transparent;
-            color: #334;
-            font-size: 30px;
+            color: #eee;
+            font-size: 8vw;
             cursor: pointer;
+            border-radius: 15px;
         }
         #container #instructions {
             position: absolute;
-            width: 100%;
-            top: 16vh;
-            left: 0;
+            width: 90%;
+            left: 5%;
+            bottom: 20vh;
             text-align: center;
-            transition: opacity 0.5s ease, transform 0.5s ease;
+            transition: opacity 0.8s ease, transform 0.8s ease;
             opacity: 0;
-            color: #334;
+            color: #ddd;
+            font-size: 4.5vw;
+            z-index: 10;
+            pointer-events: none;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
         }
         #container #instructions.hide {
             opacity: 0 !important;
         }
         #container.playing #score, #container.resetting #score {
-            transform: translatey(0px) scale(1);
+            transform: translateY(0px) scale(1);
         }
         #container.playing #instructions {
             opacity: 1;
+            transform: translateY(0);
         }
         #container.ready .game-ready #start-button {
             opacity: 1;
-            transform: translatey(0);
+            transform: translateY(0);
         }
         #container.ended #score {
-            transform: translatey(6vh) scale(1.5);
+            transform: translateY(6vh) scale(1.5);
         }
         #container.ended .game-over * {
             opacity: 1;
-            transform: translatey(0);
+            transform: translateY(0);
         }
         #container.ended .game-over p {
             transition-delay: 0.3s;
@@ -126,20 +161,24 @@
     <div id="container">
         <div id="game"></div>
         <div id="score">0</div>
-        <div id="instructions">Click (or press the spacebar) to place the block</div>
+        <div id="high-score">High Score: 0</div>
+        <div id="instructions">Tap layar (atau tekan spasi) untuk menempatkan blok</div>
         <div class="game-over">
             <h2>Game Over</h2>
-            <p>You did great, you're the best.</p>
-            <p>Click or spacebar to start again</p>
+            <p>Keren sekali!</p>
+            <p>Tap atau tekan spasi untuk mulai lagi</p>
         </div>
         <div class="game-ready">
-            <div id="start-button">Start</div>
+            <div id="start-button">Mulai</div>
         </div>
     </div>
-    <footer style="position:absolute;bottom:10px;left:0;width:100%;text-align:center;color:#334;">Project By: TomNgo03</footer>
 
     <script>
         console.clear();
+
+        // High Score
+        var highScore = localStorage.getItem('blockTowerHighScore') || 0;
+        document.getElementById('high-score').innerHTML = 'High Score: ' + highScore;
 
         var Stage = (function () {
             function Stage() {
@@ -156,31 +195,36 @@
                 this.container = document.getElementById('game');
                 this.renderer = new THREE.WebGLRenderer({
                     antialias: true,
-                    alpha: false
+                    alpha: false,
+                    powerPreference: "high-performance"
                 });
+                this.renderer.setPixelRatio(window.devicePixelRatio > 1.5 ? 1.5 : 1);
                 this.renderer.setSize(window.innerWidth, window.innerHeight);
-                this.renderer.setClearColor('#D0CBC7', 1);
+                this.renderer.setClearColor('#222222', 1); // Background gelap
                 this.container.appendChild(this.renderer.domElement);
                 this.scene = new THREE.Scene();
+
                 var aspect = window.innerWidth / window.innerHeight;
                 var d = 20;
                 this.camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, -100, 1000);
-                this.camera.position.x = 2;
-                this.camera.position.y = 2;
-                this.camera.position.z = 2;
+                this.camera.position.set(2, 2, 2);
                 this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-                this.light = new THREE.DirectionalLight(0xffffff, 0.5);
-                this.light.position.set(0, 499, 0);
+
+                // Pencahayaan sederhana dan natural, tanpa glare berlebih
+                this.light = new THREE.DirectionalLight(0xffffff, 0.8);
+                this.light.position.set(10, 20, 10);
                 this.scene.add(this.light);
-                this.softLight = new THREE.AmbientLight(0xffffff, 0.4);
+
+                this.softLight = new THREE.AmbientLight(0xffffff, 0.6);
                 this.scene.add(this.softLight);
+
                 window.addEventListener('resize', function () { return _this.onResize(); });
                 this.onResize();
             }
             Stage.prototype.setCamera = function (y, speed) {
-                if (speed === void 0) { speed = 0.3; }
-                TweenLite.to(this.camera.position, speed, { y: y + 4, ease: Power1.easeInOut });
-                TweenLite.to(this.camera.lookAt, speed, { y: y, ease: Power1.easeInOut });
+                if (speed === void 0) { speed = 0.5; }
+                TweenLite.to(this.camera.position, speed, { y: y + 4, ease: Power2.easeInOut });
+                TweenLite.to(this.camera.lookAt, speed, { y: y, ease: Power2.easeInOut });
             };
             Stage.prototype.onResize = function () {
                 var viewSize = 30;
@@ -194,6 +238,48 @@
             return Stage;
         }());
 
+        // Sistem Partikel Sederhana
+        function createPerfectParticles(position, color) {
+            var particleCount = 30;
+            var particles = new THREE.Group();
+            var geometry = new THREE.SphereGeometry(0.15, 8, 8);
+
+            for (var i = 0; i < particleCount; i++) {
+                var material = new THREE.MeshBasicMaterial({ color: color });
+                var particle = new THREE.Mesh(geometry, material);
+
+                particle.position.copy(position);
+
+                var velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 8,
+                    Math.random() * 10 + 5,
+                    (Math.random() - 0.5) * 8
+                );
+
+                TweenLite.to(particle.position, 1.2, {
+                    x: particle.position.x + velocity.x,
+                    y: particle.position.y + velocity.y,
+                    z: particle.position.z + velocity.z,
+                    ease: Power2.easeOut
+                });
+
+                TweenLite.to(particle.scale, 1.2, {
+                    x: 0,
+                    y: 0,
+                    z: 0,
+                    ease: Power2.easeIn,
+                    delay: 0.4,
+                    onComplete: function() {
+                        particles.remove(particle);
+                    }
+                });
+
+                particles.add(particle);
+            }
+
+            return particles;
+        }
+
         var Block = (function () {
             function Block(block) {
                 this.STATES = { ACTIVE: 'active', STOPPED: 'stopped', MISSED: 'missed' };
@@ -204,86 +290,107 @@
                 this.index = (this.targetBlock ? this.targetBlock.index : 0) + 1;
                 this.workingPlane = this.index % 2 ? 'x' : 'z';
                 this.workingDimension = this.index % 2 ? 'width' : 'depth';
+
                 this.dimension.width = this.targetBlock ? this.targetBlock.dimension.width : 10;
                 this.dimension.height = this.targetBlock ? this.targetBlock.dimension.height : 2;
                 this.dimension.depth = this.targetBlock ? this.targetBlock.dimension.depth : 10;
+
                 this.position.x = this.targetBlock ? this.targetBlock.position.x : 0;
                 this.position.y = this.dimension.height * this.index;
                 this.position.z = this.targetBlock ? this.targetBlock.position.z : 0;
-                this.colorOffset = this.targetBlock ? this.targetBlock.colorOffset : Math.round(Math.random() * 100);
-                if (!this.targetBlock) {
-                    this.color = 0x333344;
-                } else {
-                    var offset = this.index + this.colorOffset;
-                    var r = Math.sin(0.3 * offset) * 55 + 200;
-                    var g = Math.sin(0.3 * offset + 2) * 55 + 200;
-                    var b = Math.sin(0.3 * offset + 4) * 55 + 200;
-                    this.color = new THREE.Color(r / 255, g / 255, b / 255);
-                }
+
+                // Palet warna pekat / gelap (dark rich colors)
+                var colors = [
+                    0x8B0000, // Dark Red
+                    0x2F4F4F, // Dark Slate Gray
+                    0x191970, // Midnight Blue
+                    0x006400, // Dark Green
+                    0x4B0082, // Indigo
+                    0x800080, // Purple
+                    0x696969, // Dim Gray
+                    0x8B4513  // Saddle Brown
+                ];
+                var prevColor = this.targetBlock ? this.targetBlock.color : null;
+                var availableColors = colors.filter(function(c) { return c !== prevColor; });
+                if (availableColors.length === 0) availableColors = colors;
+                this.color = availableColors[Math.floor(Math.random() * availableColors.length)];
+
                 this.state = this.index > 1 ? this.STATES.ACTIVE : this.STATES.STOPPED;
+
                 this.speed = -0.1 - (this.index * 0.005);
                 if (this.speed < -4) this.speed = -4;
                 this.direction = this.speed;
+
                 var geometry = new THREE.BoxGeometry(this.dimension.width, this.dimension.height, this.dimension.depth);
                 geometry.applyMatrix(new THREE.Matrix4().makeTranslation(this.dimension.width / 2, this.dimension.height / 2, this.dimension.depth / 2));
-                this.material = new THREE.MeshToonMaterial({ color: this.color, shading: THREE.FlatShading });
+
+                this.material = new THREE.MeshToonMaterial({ color: this.color });
                 this.mesh = new THREE.Mesh(geometry, this.material);
-                this.mesh.position.set(this.position.x, this.position.y + (this.state == this.STATES.ACTIVE ? 0 : 0), this.position.z);
-                if (this.state == this.STATES.ACTIVE) {
+                this.mesh.position.set(this.position.x, this.position.y, this.position.z);
+
+                if (this.state === this.STATES.ACTIVE) {
                     this.position[this.workingPlane] = Math.random() > 0.5 ? -this.MOVE_AMOUNT : this.MOVE_AMOUNT;
                 }
             }
+
             Block.prototype.reverseDirection = function () {
                 this.direction = this.direction > 0 ? this.speed : Math.abs(this.speed);
             };
+
             Block.prototype.place = function () {
                 this.state = this.STATES.STOPPED;
                 var overlap = this.targetBlock.dimension[this.workingDimension] - Math.abs(this.position[this.workingPlane] - this.targetBlock.position[this.workingPlane]);
+
                 var blocksToReturn = {
                     plane: this.workingPlane,
-                    direction: this.direction
+                    direction: this.direction,
+                    perfect: false
                 };
+
                 if (this.dimension[this.workingDimension] - overlap < 0.3) {
                     overlap = this.dimension[this.workingDimension];
-                    blocksToReturn.bonus = true;
+                    blocksToReturn.perfect = true; // Perfect placement!
                     this.position.x = this.targetBlock.position.x;
                     this.position.z = this.targetBlock.position.z;
                     this.dimension.width = this.targetBlock.dimension.width;
                     this.dimension.depth = this.targetBlock.dimension.depth;
                 }
+
                 if (overlap > 0) {
                     var choppedDimensions = { width: this.dimension.width, height: this.dimension.height, depth: this.dimension.depth };
                     choppedDimensions[this.workingDimension] -= overlap;
                     this.dimension[this.workingDimension] = overlap;
+
                     var placedGeometry = new THREE.BoxGeometry(this.dimension.width, this.dimension.height, this.dimension.depth);
                     placedGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(this.dimension.width / 2, this.dimension.height / 2, this.dimension.depth / 2));
                     var placedMesh = new THREE.Mesh(placedGeometry, this.material);
+
                     var choppedGeometry = new THREE.BoxGeometry(choppedDimensions.width, choppedDimensions.height, choppedDimensions.depth);
                     choppedGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(choppedDimensions.width / 2, choppedDimensions.height / 2, choppedDimensions.depth / 2));
                     var choppedMesh = new THREE.Mesh(choppedGeometry, this.material);
-                    var choppedPosition = {
-                        x: this.position.x,
-                        y: this.position.y,
-                        z: this.position.z
-                    };
+
+                    var choppedPosition = { x: this.position.x, y: this.position.y, z: this.position.z };
                     if (this.position[this.workingPlane] < this.targetBlock.position[this.workingPlane]) {
                         this.position[this.workingPlane] = this.targetBlock.position[this.workingPlane];
                     } else {
                         choppedPosition[this.workingPlane] += overlap;
                     }
+
                     placedMesh.position.set(this.position.x, this.position.y, this.position.z);
                     choppedMesh.position.set(choppedPosition.x, choppedPosition.y, choppedPosition.z);
+
                     blocksToReturn.placed = placedMesh;
-                    if (!blocksToReturn.bonus)
-                        blocksToReturn.chopped = choppedMesh;
+                    if (!blocksToReturn.perfect) blocksToReturn.chopped = choppedMesh;
                 } else {
                     this.state = this.STATES.MISSED;
                 }
+
                 this.dimension[this.workingDimension] = overlap;
                 return blocksToReturn;
             };
+
             Block.prototype.tick = function () {
-                if (this.state == this.STATES.ACTIVE) {
+                if (this.state === this.STATES.ACTIVE) {
                     var value = this.position[this.workingPlane];
                     if (value > this.MOVE_AMOUNT || value < -this.MOVE_AMOUNT)
                         this.reverseDirection();
@@ -291,6 +398,7 @@
                     this.mesh.position[this.workingPlane] = this.position[this.workingPlane];
                 }
             };
+
             return Block;
         }());
 
@@ -309,18 +417,25 @@
                 this.stage = new Stage();
                 this.mainContainer = document.getElementById('container');
                 this.scoreContainer = document.getElementById('score');
+                this.highScoreContainer = document.getElementById('high-score');
                 this.startButton = document.getElementById('start-button');
                 this.instructions = document.getElementById('instructions');
                 this.scoreContainer.innerHTML = '0';
+
                 this.newBlocks = new THREE.Group();
                 this.placedBlocks = new THREE.Group();
                 this.choppedBlocks = new THREE.Group();
+                this.particleGroup = new THREE.Group(); // Group untuk partikel sementara
+
                 this.stage.add(this.newBlocks);
                 this.stage.add(this.placedBlocks);
                 this.stage.add(this.choppedBlocks);
+                this.stage.add(this.particleGroup);
+
                 this.addBlock();
                 this.tick();
                 this.updateState(this.STATES.READY);
+
                 document.addEventListener('keydown', function (e) {
                     if (e.keyCode == 32) _this.onAction();
                 });
@@ -329,14 +444,23 @@
                 });
                 document.addEventListener('touchstart', function (e) {
                     e.preventDefault();
+                    _this.onAction();
                 });
             }
+
             Game.prototype.updateState = function (newState) {
                 for (var key in this.STATES)
                     this.mainContainer.classList.remove(this.STATES[key]);
                 this.mainContainer.classList.add(newState);
                 this.state = newState;
+
+                if (newState === 'ready') {
+                    TweenLite.to(this.mainContainer.querySelector('.game-ready'), 1, { opacity: 1 });
+                } else if (newState === 'playing') {
+                    TweenLite.to(this.mainContainer.querySelector('.game-ready'), 0.6, { opacity: 0 });
+                }
             };
+
             Game.prototype.onAction = function () {
                 switch (this.state) {
                     case this.STATES.READY:
@@ -350,19 +474,23 @@
                         break;
                 }
             };
+
             Game.prototype.startGame = function () {
-                if (this.state != this.STATES.PLAYING) {
+                if (this.state !== this.STATES.PLAYING) {
                     this.scoreContainer.innerHTML = '0';
                     this.updateState(this.STATES.PLAYING);
                     this.addBlock();
                 }
             };
+
             Game.prototype.restartGame = function () {
                 var _this = this;
                 this.updateState(this.STATES.RESETTING);
+
                 var oldBlocks = this.placedBlocks.children;
-                var removeSpeed = 0.2;
-                var delayAmount = 0.02;
+                var removeSpeed = 0.25;
+                var delayAmount = 0.015;
+
                 for (var i = 0; i < oldBlocks.length; i++) {
                     TweenLite.to(oldBlocks[i].scale, removeSpeed, {
                         x: 0, y: 0, z: 0,
@@ -370,71 +498,111 @@
                         ease: Power1.easeIn,
                         onComplete: function () { _this.placedBlocks.remove(oldBlocks[i]); }
                     });
-                    TweenLite.to(oldBlocks[i].rotation, removeSpeed, {
-                        y: 0.5,
-                        delay: (oldBlocks.length - i) * delayAmount,
-                        ease: Power1.easeIn
-                    });
                 }
-                var cameraMoveSpeed = removeSpeed * 2 + (oldBlocks.length * delayAmount);
+
+                var cameraMoveSpeed = removeSpeed * 2 + (oldBlocks.length * delayAmount) + 0.3;
                 this.stage.setCamera(2, cameraMoveSpeed);
+
                 var countdown = { value: this.blocks.length - 1 };
                 TweenLite.to(countdown, cameraMoveSpeed, {
                     value: 0,
                     onUpdate: function () { _this.scoreContainer.innerHTML = String(Math.round(countdown.value)); }
                 });
+
                 this.blocks = this.blocks.slice(0, 1);
                 setTimeout(function () {
                     _this.startGame();
                 }, cameraMoveSpeed * 1000);
             };
+
             Game.prototype.placeBlock = function () {
                 var _this = this;
                 var currentBlock = this.blocks[this.blocks.length - 1];
                 var newBlocks = currentBlock.place();
+
+                // Efek perfect placement
+                if (newBlocks.perfect && newBlocks.placed) {
+                    // Scale bounce lebih besar
+                    newBlocks.placed.scale.set(1.3, 1.3, 1.3);
+                    TweenLite.to(newBlocks.placed.scale, 0.4, { x: 1, y: 1, z: 1, ease: Elastic.easeOut.config(1, 0.3) });
+
+                    // Partikel emas di antara blok bawah dan atas
+                    var particlePos = new THREE.Vector3(
+                        newBlocks.placed.position.x,
+                        newBlocks.placed.position.y - 1, // tepat di atas blok bawah
+                        newBlocks.placed.position.z
+                    );
+                    var particles = createPerfectParticles(particlePos, 0xffd700); // warna emas
+                    this.particleGroup.add(particles);
+
+                    // Hapus partikel setelah animasi selesai
+                    setTimeout(function() {
+                        _this.stage.remove(particles);
+                    }, 1500);
+                } else if (newBlocks.placed) {
+                    // Bounce kecil biasa
+                    newBlocks.placed.scale.set(1.15, 1.15, 1.15);
+                    TweenLite.to(newBlocks.placed.scale, 0.2, { x: 1, y: 1, z: 1, ease: Power1.easeOut });
+                }
+
                 this.newBlocks.remove(currentBlock.mesh);
                 if (newBlocks.placed) this.placedBlocks.add(newBlocks.placed);
+
                 if (newBlocks.chopped) {
                     this.choppedBlocks.add(newBlocks.chopped);
                     var positionParams = { y: '-=30', ease: Power1.easeIn, onComplete: function () { _this.choppedBlocks.remove(newBlocks.chopped); } };
-                    var rotateRandomness = 10;
-                    var rotationParams = {
-                        delay: 0.05,
-                        x: newBlocks.plane == 'z' ? ((Math.random() * rotateRandomness) - (rotateRandomness / 2)) : 0.1,
-                        z: newBlocks.plane == 'x' ? ((Math.random() * rotateRandomness) - (rotateRandomness / 2)) : 0.1,
-                        y: Math.random() * 0.1,
-                    };
                     if (newBlocks.chopped.position[newBlocks.plane] > newBlocks.placed.position[newBlocks.plane]) {
-                        positionParams[newBlocks.plane] = '+=' + (40 * Math.abs(newBlocks.direction));
+                        positionParams[newBlocks.plane] = '+=' + (35 * Math.abs(newBlocks.direction));
                     } else {
-                        positionParams[newBlocks.plane] = '-=' + (40 * Math.abs(newBlocks.direction));
+                        positionParams[newBlocks.plane] = '-=' + (35 * Math.abs(newBlocks.direction));
                     }
-                    TweenLite.to(newBlocks.chopped.position, 1, positionParams);
-                    TweenLite.to(newBlocks.chopped.rotation, 1, rotationParams);
+                    TweenLite.to(newBlocks.chopped.position, 0.8, positionParams);
+                    TweenLite.to(newBlocks.chopped.rotation, 0.8, { x: 0.3, z: 0.3, y: Math.random() * 0.6 });
                 }
+
                 this.addBlock();
             };
+
             Game.prototype.addBlock = function () {
                 var lastBlock = this.blocks[this.blocks.length - 1];
-                if (lastBlock && lastBlock.state == lastBlock.STATES.MISSED) {
+                if (lastBlock && lastBlock.state === lastBlock.STATES.MISSED) {
                     return this.endGame();
                 }
-                this.scoreContainer.innerHTML = String(this.blocks.length - 1);
+
+                var currentScore = this.blocks.length - 1;
+                this.scoreContainer.innerHTML = String(currentScore);
+
+                if (currentScore > highScore) {
+                    highScore = currentScore;
+                    localStorage.setItem('blockTowerHighScore', highScore);
+                    this.highScoreContainer.innerHTML = 'High Score: ' + highScore;
+                }
+
                 var newKidOnTheBlock = new Block(lastBlock);
+
+                newKidOnTheBlock.mesh.scale.set(0.9, 0.9, 0.9);
                 this.newBlocks.add(newKidOnTheBlock.mesh);
+                TweenLite.to(newKidOnTheBlock.mesh.scale, 0.25, { x: 1, y: 1, z: 1, ease: Power2.easeOut });
+
                 this.blocks.push(newKidOnTheBlock);
                 this.stage.setCamera(this.blocks.length * 2);
+
                 if (this.blocks.length >= 5) this.instructions.classList.add('hide');
             };
+
             Game.prototype.endGame = function () {
                 this.updateState(this.STATES.ENDED);
             };
+
             Game.prototype.tick = function () {
                 var _this = this;
-                this.blocks[this.blocks.length - 1].tick();
+                if (this.blocks.length > 0) {
+                    this.blocks[this.blocks.length - 1].tick();
+                }
                 this.stage.render();
                 requestAnimationFrame(function () { _this.tick(); });
             };
+
             return Game;
         }());
 

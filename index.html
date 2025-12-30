@@ -1,589 +1,444 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D Stack Game - Rainbow Edition</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;600&display=swap');
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,user-scalable=no">
+    <title>Block Tower</title>
 
-        body {
+    <!-- Library eksternal -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/TweenMax.min.js"></script>
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet">
+
+    <style>
+        html, body {
             margin: 0;
             overflow: hidden;
-            background-color: #dbeafe; /* Fallback color */
-            font-family: 'Poppins', sans-serif;
-            touch-action: none; /* Prevent zoom/scroll on mobile */
+            height: 100%;
+            width: 100%;
+            position: relative;
+            font-family: 'Comfortaa', cursive;
         }
-
-        #game-container {
+        #container {
+            width: 100%;
+            height: 100%;
+        }
+        #container #score {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 10vh;
+            transition: transform 0.5s ease;
+            color: #334;
+            transform: translatey(-200px) scale(1);
+        }
+        #container #game {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+        #container .game-over {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-
-        /* UI Overlay */
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            pointer-events: none; /* Let clicks pass through to game */
+            height: 85%;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-            box-sizing: border-box;
+            align-items: center;
+            justify-content: center;
         }
-
-        .score-container {
-            text-align: center;
-            color: #334155;
-            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+        #container .game-over * {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            opacity: 0;
+            transform: translatey(-50px);
+            color: #334;
         }
-
-        #score {
-            font-family: 'Fredoka One', cursive;
-            font-size: 4rem;
+        #container .game-over h2 {
             margin: 0;
-            line-height: 1;
+            padding: 0;
+            font-size: 40px;
         }
-
-        #high-score {
-            font-size: 1rem;
-            font-weight: 600;
-            opacity: 0.7;
-        }
-
-        /* Screens (Start / Game Over) */
-        .screen {
+        #container .game-ready {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            pointer-events: auto; /* Re-enable clicks for buttons */
-            transition: opacity 0.3s;
-            display: none;
-        }
-
-        .screen.active {
-            display: block;
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        h1 {
-            font-family: 'Fredoka One', cursive;
-            color: #475569;
-            margin-bottom: 10px;
-            font-size: 2.5rem;
-        }
-
-        p {
-            color: #64748b;
-            margin-bottom: 25px;
-        }
-
-        button {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            border: none;
-            padding: 15px 40px;
-            color: white;
-            font-size: 1.2rem;
-            font-family: 'Fredoka One', cursive;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
-            transition: transform 0.1s, box-shadow 0.1s;
-        }
-
-        button:active {
-            transform: scale(0.95);
-            box-shadow: 0 2px 5px rgba(99, 102, 241, 0.4);
-        }
-
-        @keyframes popIn {
-            0% { opacity: 0; transform: translate(-50%, -40%); }
-            100% { opacity: 1; transform: translate(-50%, -50%); }
-        }
-
-        /* Petunjuk Awal */
-        #instruction {
-            position: absolute;
-            bottom: 50px;
+            top: 0;
+            left: 0;
             width: 100%;
-            text-align: center;
-            color: #64748b;
-            font-weight: 600;
-            animation: pulse 2s infinite;
-            pointer-events: none;
-            display: none;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
         }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
+        #container .game-ready #start-button {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            opacity: 0;
+            transform: translatey(-50px);
+            border: 3px solid #334;
+            padding: 10px 20px;
+            background-color: transparent;
+            color: #334;
+            font-size: 30px;
+            cursor: pointer;
+        }
+        #container #instructions {
+            position: absolute;
+            width: 100%;
+            top: 16vh;
+            left: 0;
+            text-align: center;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            opacity: 0;
+            color: #334;
+        }
+        #container #instructions.hide {
+            opacity: 0 !important;
+        }
+        #container.playing #score, #container.resetting #score {
+            transform: translatey(0px) scale(1);
+        }
+        #container.playing #instructions {
+            opacity: 1;
+        }
+        #container.ready .game-ready #start-button {
+            opacity: 1;
+            transform: translatey(0);
+        }
+        #container.ended #score {
+            transform: translatey(6vh) scale(1.5);
+        }
+        #container.ended .game-over * {
+            opacity: 1;
+            transform: translatey(0);
+        }
+        #container.ended .game-over p {
+            transition-delay: 0.3s;
         }
     </style>
-    <!-- Three.js CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-
-    <div id="game-container"></div>
-
-    <div id="ui-layer">
-        <div class="score-container">
-            <div id="score">0</div>
-            <div id="high-score">High Score: 0</div>
+    <div id="container">
+        <div id="game"></div>
+        <div id="score">0</div>
+        <div id="instructions">Click (or press the spacebar) to place the block</div>
+        <div class="game-over">
+            <h2>Game Over</h2>
+            <p>You did great, you're the best.</p>
+            <p>Click or spacebar to start again</p>
+        </div>
+        <div class="game-ready">
+            <div id="start-button">Start</div>
         </div>
     </div>
-
-    <div id="start-screen" class="screen active">
-        <h1>3D STACK</h1>
-        <p>Tumpuk setinggi mungkin!</p>
-        <button id="start-btn">MAIN</button>
-    </div>
-
-    <div id="game-over-screen" class="screen">
-        <h1>GAME OVER</h1>
-        <p>Skor Akhir: <span id="final-score">0</span></p>
-        <button id="restart-btn">MAIN LAGI</button>
-    </div>
-
-    <div id="instruction">Tap / Klik untuk meletakkan blok</div>
+    <footer style="position:absolute;bottom:10px;left:0;width:100%;text-align:center;color:#334;">Project By: TomNgo03</footer>
 
     <script>
-        /**
-         * 3D STACK GAME - LOGIC CORE
-         */
+        console.clear();
 
-        // --- KONFIGURASI GAME ---
-        const CONFIG = {
-            boxHeight: 1,
-            originalBoxSize: 3,
-            moveSpeed: 0.15,
-            bgColor: 0xdbeafe, // Soft Blue Pastel
-            cameraOffset: 10,
-            cameraZoom: 2.5
-        };
-
-        // --- VARIABEL GLOBAL ---
-        let scene, camera, renderer;
-        let stack = []; 
-        let overhangs = []; // Puing-puing yang jatuh
-        let gameActive = false;
-        let score = 0;
-        let highScore = localStorage.getItem('stackHighScore') || 0;
-        
-        // Logika Gerakan
-        let axis = 'x'; // 'x' atau 'z'
-        let direction = 1; // 1 atau -1
-        let currentBlock = null;
-
-        // DOM Elements
-        const scoreEl = document.getElementById('score');
-        const highScoreEl = document.getElementById('high-score');
-        const finalScoreEl = document.getElementById('final-score');
-        const startScreen = document.getElementById('start-screen');
-        const gameOverScreen = document.getElementById('game-over-screen');
-        const instructionEl = document.getElementById('instruction');
-
-        // Update UI Awal
-        highScoreEl.innerText = `High Score: ${highScore}`;
-
-        // --- INIT THREE.JS ---
-        function init() {
-            // 1. Scene
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(CONFIG.bgColor);
-            
-            // Tambahkan kabut untuk kedalaman (Fog)
-            scene.fog = new THREE.Fog(CONFIG.bgColor, 10, 25);
-
-            // 2. Camera (Orthographic untuk tampilan isometrik yang bersih)
-            const aspect = window.innerWidth / window.innerHeight;
-            const d = 10;
-            camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
-            
-            // Posisi Isometric
-            camera.position.set(CONFIG.cameraOffset, CONFIG.cameraOffset, CONFIG.cameraOffset);
-            camera.lookAt(0, 0, 0);
-
-            // 3. Renderer
-            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true; // Aktifkan bayangan
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            document.getElementById('game-container').appendChild(renderer.domElement);
-
-            // 4. Pencahayaan (Lighting)
-            setupLighting();
-
-            // 5. Setup Awal Blok Basis
-            resetGameBase();
-
-            // 6. Event Listeners
-            window.addEventListener('resize', onWindowResize, false);
-            
-            // Input (Mouse & Touch)
-            document.addEventListener('click', handleInput);
-            document.addEventListener('touchstart', (e) => {
-                // Prevent ghost clicks on buttons
-                if(e.target.tagName !== 'BUTTON') {
-                    handleInput(e);
-                }
-            }, {passive: false});
-
-            // Tombol UI
-            document.getElementById('start-btn').addEventListener('click', startGame);
-            document.getElementById('restart-btn').addEventListener('click', startGame);
-
-            // Mulai Render Loop
-            animate();
-        }
-
-        function setupLighting() {
-            // Cahaya Ambient (Umum)
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
-
-            // Cahaya Matahari (Directional) untuk bayangan
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
-            dirLight.position.set(10, 20, 10);
-            dirLight.castShadow = true;
-            
-            // Optimasi area bayangan
-            dirLight.shadow.mapSize.width = 2048;
-            dirLight.shadow.mapSize.height = 2048;
-            const d = 10;
-            dirLight.shadow.camera.left = -d;
-            dirLight.shadow.camera.right = d;
-            dirLight.shadow.camera.top = d;
-            dirLight.shadow.camera.bottom = -d;
-
-            scene.add(dirLight);
-        }
-
-        // --- GENERATOR WARNA DINAMIS ---
-        function getRainbowColor(index) {
-            // Menggunakan HSL. Hue berubah 5 derajat setiap blok.
-            // Saturation 70%, Lightness 60% (Pastel Vibrant)
-            const hue = (index * 10) % 360; 
-            return new THREE.Color(`hsl(${hue}, 75%, 60%)`);
-        }
-
-        // --- SISTEM BLOK ---
-        
-        /**
-         * FUNGSI UNTUK MENGGANTI MODEL 3D (GLTFLoader)
-         * ----------------------------------------------------
-         * Jika Anda ingin menggunakan model 3D kustom (misalnya dari Blender):
-         * 1. Hapus/Komentari bagian `new THREE.BoxGeometry`.
-         * 2. Gunakan GLTFLoader untuk memuat model.
-         * 3. Masalah: Karena game ini memotong geometri (slicing),
-         * menggunakan model statis (GLTF) sulit karena meshnya harus dipotong secara dinamis.
-         * * SOLUSI TERBAIK UNTUK PEMULA:
-         * Tetap gunakan BoxGeometry untuk logika fisikanya, tapi letakkan 
-         * model GLTF "kecil" di dalam atau di atas blok sebagai hiasan.
-         */
-
-        function createBlock(x, y, z, width, depth, index) {
-            // Geometri
-            const geometry = new THREE.BoxGeometry(width, CONFIG.boxHeight, depth);
-            
-            // Material dengan warna dinamis
-            const material = new THREE.MeshLambertMaterial({ 
-                color: getRainbowColor(index)
-            });
-
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(x, y, z);
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-
-            scene.add(mesh);
-            return mesh;
-        }
-
-        function createOverhang(x, y, z, width, depth, color) {
-            const geometry = new THREE.BoxGeometry(width, CONFIG.boxHeight, depth);
-            const material = new THREE.MeshLambertMaterial({ color: color });
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(x, y, z);
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-            
-            scene.add(mesh);
-            return mesh;
-        }
-
-        // --- LOGIKA GAMEPLAY ---
-
-        function startGame() {
-            // Reset Variable
-            gameActive = true;
-            score = 0;
-            scoreEl.innerText = score;
-            
-            // UI Update
-            startScreen.classList.remove('active');
-            gameOverScreen.classList.remove('active');
-            instructionEl.style.display = 'block';
-
-            // Bersihkan Scene
-            resetGameBase();
-
-            // Tambah blok pertama yang bergerak
-            spawnNextBlock();
-        }
-
-        function resetGameBase() {
-            // Hapus semua blok lama dari scene
-            stack.forEach(mesh => scene.remove(mesh));
-            overhangs.forEach(obj => scene.remove(obj.mesh));
-            
-            stack = [];
-            overhangs = [];
-
-            // Blok Dasar (Fondasi)
-            const baseBlock = createBlock(0, 0, 0, CONFIG.originalBoxSize, CONFIG.originalBoxSize, 0);
-            stack.push(baseBlock);
-        }
-
-        function spawnNextBlock() {
-            const prevBlock = stack[stack.length - 1];
-            
-            // Ganti sumbu setiap kali spawn
-            axis = (axis === 'x') ? 'z' : 'x';
-            
-            // Tentukan posisi awal (jauh di kiri/kanan atau depan/belakang)
-            const limit = 6;
-            const pos = prevBlock.position.clone();
-            pos.y += CONFIG.boxHeight;
-            pos[axis] = -limit; // Mulai dari sisi negatif
-            direction = 1;      // Bergerak ke positif
-
-            // Dapatkan dimensi blok sebelumnya
-            const width = prevBlock.geometry.parameters.width;
-            const depth = prevBlock.geometry.parameters.depth;
-
-            // Buat blok baru
-            currentBlock = createBlock(pos.x, pos.y, pos.z, width, depth, stack.length);
-            // Simpan ukuran asli untuk referensi saat bergerak
-            currentBlock.userData = { 
-                width: width, 
-                depth: depth,
-                startSpeed: CONFIG.moveSpeed + (score * 0.005) // Sedikit lebih cepat setiap level
-            };
-        }
-
-        function handleInput(e) {
-            // Abaikan input jika game tidak aktif atau klik pada tombol UI
-            if (!gameActive) return;
-            if (e.target.tagName === 'BUTTON') return;
-
-            instructionEl.style.display = 'none';
-
-            // Logika Pemotongan (Slicing Logic)
-            const prevBlock = stack[stack.length - 1];
-            const currBlock = currentBlock;
-
-            const prevPos = prevBlock.position[axis];
-            const currPos = currBlock.position[axis];
-
-            const delta = currPos - prevPos;
-            const absDelta = Math.abs(delta);
-
-            // Ambil ukuran pada sumbu yang sedang aktif
-            const size = (axis === 'x') ? currBlock.userData.width : currBlock.userData.depth;
-
-            // JIKA MELESET TOTAL (Game Over)
-            if (absDelta >= size) {
-                gameOver();
-                return;
-            }
-
-            // HITUNG UKURAN BARU & OVERHANG
-            const remainingSize = size - absDelta;
-            const overlapCenter = prevPos + delta / 2;
-
-            // Update Metadata Ukuran
-            let newWidth = currBlock.userData.width;
-            let newDepth = currBlock.userData.depth;
-            let overhangWidth = 0;
-            let overhangDepth = 0;
-            let overhangX = currBlock.position.x;
-            let overhangZ = currBlock.position.z;
-
-            // Modifikasi geometri berdasarkan sumbu
-            if (axis === 'x') {
-                newWidth = remainingSize;
-                overhangWidth = absDelta;
-                overhangDepth = newDepth;
-                
-                // Set posisi baru blok utama (tengah overlap)
-                currBlock.position.x = overlapCenter;
-                
-                // Tentukan posisi overhang
-                if (delta > 0) {
-                    overhangX = currBlock.position.x + (newWidth / 2) + (overhangWidth / 2);
-                } else {
-                    overhangX = currBlock.position.x - (newWidth / 2) - (overhangWidth / 2);
-                }
-            } else { // axis === 'z'
-                newDepth = remainingSize;
-                overhangDepth = absDelta;
-                overhangWidth = newWidth;
-
-                currBlock.position.z = overlapCenter;
-
-                if (delta > 0) {
-                    overhangZ = currBlock.position.z + (newDepth / 2) + (overhangDepth / 2);
-                } else {
-                    overhangZ = currBlock.position.z - (newDepth / 2) - (overhangDepth / 2);
-                }
-            }
-
-            // 1. UPDATE BLOK SAAT INI (Resize)
-            // Three.js tidak bisa resize geometry dengan mudah, lebih baik buat baru dan hapus lama
-            scene.remove(currBlock);
-            const correctedBlock = createBlock(
-                currBlock.position.x, 
-                currBlock.position.y, 
-                currBlock.position.z, 
-                newWidth, 
-                newDepth, 
-                stack.length // index untuk warna
-            );
-            stack.push(correctedBlock);
-
-            // 2. BUAT PUING JATUH (Overhang)
-            const fallingPart = createOverhang(
-                overhangX, 
-                currBlock.position.y, 
-                overhangZ, 
-                overhangWidth, 
-                overhangDepth, 
-                correctedBlock.material.color
-            );
-            
-            // Tambahkan fisika sederhana ke overhang
-            overhangs.push({
-                mesh: fallingPart,
-                vy: 0, // velocity y
-                rx: Math.random() * 0.1, // rotasi random
-                rz: Math.random() * 0.1
-            });
-
-            // 3. UPDATE SCORE
-            score++;
-            scoreEl.innerText = score;
-
-            // 4. LANJUT KE BLOK BERIKUTNYA
-            spawnNextBlock();
-        }
-
-        function gameOver() {
-            gameActive = false;
-            
-            // Efek jatuh blok terakhir
-            if(currentBlock) {
-                overhangs.push({
-                    mesh: currentBlock,
-                    vy: 0,
-                    rx: Math.random() * 0.05,
-                    rz: Math.random() * 0.05
+        var Stage = (function () {
+            function Stage() {
+                var _this = this;
+                this.render = function () {
+                    this.renderer.render(this.scene, this.camera);
+                };
+                this.add = function (elem) {
+                    this.scene.add(elem);
+                };
+                this.remove = function (elem) {
+                    this.scene.remove(elem);
+                };
+                this.container = document.getElementById('game');
+                this.renderer = new THREE.WebGLRenderer({
+                    antialias: true,
+                    alpha: false
                 });
-                // Hapus referensi currentBlock agar tidak dirender di loop
-                currentBlock = null; 
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setClearColor('#D0CBC7', 1);
+                this.container.appendChild(this.renderer.domElement);
+                this.scene = new THREE.Scene();
+                var aspect = window.innerWidth / window.innerHeight;
+                var d = 20;
+                this.camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, -100, 1000);
+                this.camera.position.x = 2;
+                this.camera.position.y = 2;
+                this.camera.position.z = 2;
+                this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+                this.light = new THREE.DirectionalLight(0xffffff, 0.5);
+                this.light.position.set(0, 499, 0);
+                this.scene.add(this.light);
+                this.softLight = new THREE.AmbientLight(0xffffff, 0.4);
+                this.scene.add(this.softLight);
+                window.addEventListener('resize', function () { return _this.onResize(); });
+                this.onResize();
             }
+            Stage.prototype.setCamera = function (y, speed) {
+                if (speed === void 0) { speed = 0.3; }
+                TweenLite.to(this.camera.position, speed, { y: y + 4, ease: Power1.easeInOut });
+                TweenLite.to(this.camera.lookAt, speed, { y: y, ease: Power1.easeInOut });
+            };
+            Stage.prototype.onResize = function () {
+                var viewSize = 30;
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.camera.left = window.innerWidth / -viewSize;
+                this.camera.right = window.innerWidth / viewSize;
+                this.camera.top = window.innerHeight / viewSize;
+                this.camera.bottom = window.innerHeight / -viewSize;
+                this.camera.updateProjectionMatrix();
+            };
+            return Stage;
+        }());
 
-            // Update High Score
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('stackHighScore', highScore);
-                highScoreEl.innerText = `High Score: ${highScore}`;
-            }
-            
-            finalScoreEl.innerText = score;
-            gameOverScreen.classList.add('active');
-        }
-
-        // --- ANIMASI LOOP (RENDER) ---
-        function animate() {
-            requestAnimationFrame(animate);
-
-            // 1. Gerakkan Blok Aktif (Bolak-balik)
-            if (gameActive && currentBlock) {
-                const speed = currentBlock.userData.startSpeed;
-                const limit = 4; // Batas gerak sebelum balik arah
-
-                currentBlock.position[axis] += speed * direction;
-
-                // Cek batas untuk membalik arah
-                if (currentBlock.position[axis] > limit) {
-                    direction = -1;
-                } else if (currentBlock.position[axis] < -limit) {
-                    direction = 1;
+        var Block = (function () {
+            function Block(block) {
+                this.STATES = { ACTIVE: 'active', STOPPED: 'stopped', MISSED: 'missed' };
+                this.MOVE_AMOUNT = 12;
+                this.dimension = { width: 0, height: 0, depth: 0 };
+                this.position = { x: 0, y: 0, z: 0 };
+                this.targetBlock = block;
+                this.index = (this.targetBlock ? this.targetBlock.index : 0) + 1;
+                this.workingPlane = this.index % 2 ? 'x' : 'z';
+                this.workingDimension = this.index % 2 ? 'width' : 'depth';
+                this.dimension.width = this.targetBlock ? this.targetBlock.dimension.width : 10;
+                this.dimension.height = this.targetBlock ? this.targetBlock.dimension.height : 2;
+                this.dimension.depth = this.targetBlock ? this.targetBlock.dimension.depth : 10;
+                this.position.x = this.targetBlock ? this.targetBlock.position.x : 0;
+                this.position.y = this.dimension.height * this.index;
+                this.position.z = this.targetBlock ? this.targetBlock.position.z : 0;
+                this.colorOffset = this.targetBlock ? this.targetBlock.colorOffset : Math.round(Math.random() * 100);
+                if (!this.targetBlock) {
+                    this.color = 0x333344;
+                } else {
+                    var offset = this.index + this.colorOffset;
+                    var r = Math.sin(0.3 * offset) * 55 + 200;
+                    var g = Math.sin(0.3 * offset + 2) * 55 + 200;
+                    var b = Math.sin(0.3 * offset + 4) * 55 + 200;
+                    this.color = new THREE.Color(r / 255, g / 255, b / 255);
+                }
+                this.state = this.index > 1 ? this.STATES.ACTIVE : this.STATES.STOPPED;
+                this.speed = -0.1 - (this.index * 0.005);
+                if (this.speed < -4) this.speed = -4;
+                this.direction = this.speed;
+                var geometry = new THREE.BoxGeometry(this.dimension.width, this.dimension.height, this.dimension.depth);
+                geometry.applyMatrix(new THREE.Matrix4().makeTranslation(this.dimension.width / 2, this.dimension.height / 2, this.dimension.depth / 2));
+                this.material = new THREE.MeshToonMaterial({ color: this.color, shading: THREE.FlatShading });
+                this.mesh = new THREE.Mesh(geometry, this.material);
+                this.mesh.position.set(this.position.x, this.position.y + (this.state == this.STATES.ACTIVE ? 0 : 0), this.position.z);
+                if (this.state == this.STATES.ACTIVE) {
+                    this.position[this.workingPlane] = Math.random() > 0.5 ? -this.MOVE_AMOUNT : this.MOVE_AMOUNT;
                 }
             }
-
-            // 2. Animasi Kamera (Lerp agar halus)
-            // Kamera naik mengikuti tinggi stack
-            const targetY = stack.length * CONFIG.boxHeight + CONFIG.cameraOffset;
-            camera.position.y += (targetY - camera.position.y) * 0.1;
-            camera.lookAt(0, (stack.length - 3) * CONFIG.boxHeight, 0); // Selalu fokus sedikit di bawah puncak
-
-            // 3. Fisika Puing Jatuh
-            for (let i = overhangs.length - 1; i >= 0; i--) {
-                const obj = overhangs[i];
-                
-                obj.vy -= 0.02; // Gravitasi
-                obj.mesh.position.y += obj.vy;
-                
-                // Rotasi saat jatuh agar terlihat dramatis
-                obj.mesh.rotation.x += obj.rx;
-                obj.mesh.rotation.z += obj.rz;
-
-                // Hapus jika sudah jauh di bawah (Optimasi Memori)
-                if (obj.mesh.position.y < -20) {
-                    scene.remove(obj.mesh);
-                    obj.mesh.geometry.dispose();
-                    obj.mesh.material.dispose();
-                    overhangs.splice(i, 1);
+            Block.prototype.reverseDirection = function () {
+                this.direction = this.direction > 0 ? this.speed : Math.abs(this.speed);
+            };
+            Block.prototype.place = function () {
+                this.state = this.STATES.STOPPED;
+                var overlap = this.targetBlock.dimension[this.workingDimension] - Math.abs(this.position[this.workingPlane] - this.targetBlock.position[this.workingPlane]);
+                var blocksToReturn = {
+                    plane: this.workingPlane,
+                    direction: this.direction
+                };
+                if (this.dimension[this.workingDimension] - overlap < 0.3) {
+                    overlap = this.dimension[this.workingDimension];
+                    blocksToReturn.bonus = true;
+                    this.position.x = this.targetBlock.position.x;
+                    this.position.z = this.targetBlock.position.z;
+                    this.dimension.width = this.targetBlock.dimension.width;
+                    this.dimension.depth = this.targetBlock.dimension.depth;
                 }
+                if (overlap > 0) {
+                    var choppedDimensions = { width: this.dimension.width, height: this.dimension.height, depth: this.dimension.depth };
+                    choppedDimensions[this.workingDimension] -= overlap;
+                    this.dimension[this.workingDimension] = overlap;
+                    var placedGeometry = new THREE.BoxGeometry(this.dimension.width, this.dimension.height, this.dimension.depth);
+                    placedGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(this.dimension.width / 2, this.dimension.height / 2, this.dimension.depth / 2));
+                    var placedMesh = new THREE.Mesh(placedGeometry, this.material);
+                    var choppedGeometry = new THREE.BoxGeometry(choppedDimensions.width, choppedDimensions.height, choppedDimensions.depth);
+                    choppedGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(choppedDimensions.width / 2, choppedDimensions.height / 2, choppedDimensions.depth / 2));
+                    var choppedMesh = new THREE.Mesh(choppedGeometry, this.material);
+                    var choppedPosition = {
+                        x: this.position.x,
+                        y: this.position.y,
+                        z: this.position.z
+                    };
+                    if (this.position[this.workingPlane] < this.targetBlock.position[this.workingPlane]) {
+                        this.position[this.workingPlane] = this.targetBlock.position[this.workingPlane];
+                    } else {
+                        choppedPosition[this.workingPlane] += overlap;
+                    }
+                    placedMesh.position.set(this.position.x, this.position.y, this.position.z);
+                    choppedMesh.position.set(choppedPosition.x, choppedPosition.y, choppedPosition.z);
+                    blocksToReturn.placed = placedMesh;
+                    if (!blocksToReturn.bonus)
+                        blocksToReturn.chopped = choppedMesh;
+                } else {
+                    this.state = this.STATES.MISSED;
+                }
+                this.dimension[this.workingDimension] = overlap;
+                return blocksToReturn;
+            };
+            Block.prototype.tick = function () {
+                if (this.state == this.STATES.ACTIVE) {
+                    var value = this.position[this.workingPlane];
+                    if (value > this.MOVE_AMOUNT || value < -this.MOVE_AMOUNT)
+                        this.reverseDirection();
+                    this.position[this.workingPlane] += this.direction;
+                    this.mesh.position[this.workingPlane] = this.position[this.workingPlane];
+                }
+            };
+            return Block;
+        }());
+
+        var Game = (function () {
+            function Game() {
+                var _this = this;
+                this.STATES = {
+                    'LOADING': 'loading',
+                    'PLAYING': 'playing',
+                    'READY': 'ready',
+                    'ENDED': 'ended',
+                    'RESETTING': 'resetting'
+                };
+                this.blocks = [];
+                this.state = this.STATES.LOADING;
+                this.stage = new Stage();
+                this.mainContainer = document.getElementById('container');
+                this.scoreContainer = document.getElementById('score');
+                this.startButton = document.getElementById('start-button');
+                this.instructions = document.getElementById('instructions');
+                this.scoreContainer.innerHTML = '0';
+                this.newBlocks = new THREE.Group();
+                this.placedBlocks = new THREE.Group();
+                this.choppedBlocks = new THREE.Group();
+                this.stage.add(this.newBlocks);
+                this.stage.add(this.placedBlocks);
+                this.stage.add(this.choppedBlocks);
+                this.addBlock();
+                this.tick();
+                this.updateState(this.STATES.READY);
+                document.addEventListener('keydown', function (e) {
+                    if (e.keyCode == 32) _this.onAction();
+                });
+                document.addEventListener('click', function (e) {
+                    _this.onAction();
+                });
+                document.addEventListener('touchstart', function (e) {
+                    e.preventDefault();
+                });
             }
+            Game.prototype.updateState = function (newState) {
+                for (var key in this.STATES)
+                    this.mainContainer.classList.remove(this.STATES[key]);
+                this.mainContainer.classList.add(newState);
+                this.state = newState;
+            };
+            Game.prototype.onAction = function () {
+                switch (this.state) {
+                    case this.STATES.READY:
+                        this.startGame();
+                        break;
+                    case this.STATES.PLAYING:
+                        this.placeBlock();
+                        break;
+                    case this.STATES.ENDED:
+                        this.restartGame();
+                        break;
+                }
+            };
+            Game.prototype.startGame = function () {
+                if (this.state != this.STATES.PLAYING) {
+                    this.scoreContainer.innerHTML = '0';
+                    this.updateState(this.STATES.PLAYING);
+                    this.addBlock();
+                }
+            };
+            Game.prototype.restartGame = function () {
+                var _this = this;
+                this.updateState(this.STATES.RESETTING);
+                var oldBlocks = this.placedBlocks.children;
+                var removeSpeed = 0.2;
+                var delayAmount = 0.02;
+                for (var i = 0; i < oldBlocks.length; i++) {
+                    TweenLite.to(oldBlocks[i].scale, removeSpeed, {
+                        x: 0, y: 0, z: 0,
+                        delay: (oldBlocks.length - i) * delayAmount,
+                        ease: Power1.easeIn,
+                        onComplete: function () { _this.placedBlocks.remove(oldBlocks[i]); }
+                    });
+                    TweenLite.to(oldBlocks[i].rotation, removeSpeed, {
+                        y: 0.5,
+                        delay: (oldBlocks.length - i) * delayAmount,
+                        ease: Power1.easeIn
+                    });
+                }
+                var cameraMoveSpeed = removeSpeed * 2 + (oldBlocks.length * delayAmount);
+                this.stage.setCamera(2, cameraMoveSpeed);
+                var countdown = { value: this.blocks.length - 1 };
+                TweenLite.to(countdown, cameraMoveSpeed, {
+                    value: 0,
+                    onUpdate: function () { _this.scoreContainer.innerHTML = String(Math.round(countdown.value)); }
+                });
+                this.blocks = this.blocks.slice(0, 1);
+                setTimeout(function () {
+                    _this.startGame();
+                }, cameraMoveSpeed * 1000);
+            };
+            Game.prototype.placeBlock = function () {
+                var _this = this;
+                var currentBlock = this.blocks[this.blocks.length - 1];
+                var newBlocks = currentBlock.place();
+                this.newBlocks.remove(currentBlock.mesh);
+                if (newBlocks.placed) this.placedBlocks.add(newBlocks.placed);
+                if (newBlocks.chopped) {
+                    this.choppedBlocks.add(newBlocks.chopped);
+                    var positionParams = { y: '-=30', ease: Power1.easeIn, onComplete: function () { _this.choppedBlocks.remove(newBlocks.chopped); } };
+                    var rotateRandomness = 10;
+                    var rotationParams = {
+                        delay: 0.05,
+                        x: newBlocks.plane == 'z' ? ((Math.random() * rotateRandomness) - (rotateRandomness / 2)) : 0.1,
+                        z: newBlocks.plane == 'x' ? ((Math.random() * rotateRandomness) - (rotateRandomness / 2)) : 0.1,
+                        y: Math.random() * 0.1,
+                    };
+                    if (newBlocks.chopped.position[newBlocks.plane] > newBlocks.placed.position[newBlocks.plane]) {
+                        positionParams[newBlocks.plane] = '+=' + (40 * Math.abs(newBlocks.direction));
+                    } else {
+                        positionParams[newBlocks.plane] = '-=' + (40 * Math.abs(newBlocks.direction));
+                    }
+                    TweenLite.to(newBlocks.chopped.position, 1, positionParams);
+                    TweenLite.to(newBlocks.chopped.rotation, 1, rotationParams);
+                }
+                this.addBlock();
+            };
+            Game.prototype.addBlock = function () {
+                var lastBlock = this.blocks[this.blocks.length - 1];
+                if (lastBlock && lastBlock.state == lastBlock.STATES.MISSED) {
+                    return this.endGame();
+                }
+                this.scoreContainer.innerHTML = String(this.blocks.length - 1);
+                var newKidOnTheBlock = new Block(lastBlock);
+                this.newBlocks.add(newKidOnTheBlock.mesh);
+                this.blocks.push(newKidOnTheBlock);
+                this.stage.setCamera(this.blocks.length * 2);
+                if (this.blocks.length >= 5) this.instructions.classList.add('hide');
+            };
+            Game.prototype.endGame = function () {
+                this.updateState(this.STATES.ENDED);
+            };
+            Game.prototype.tick = function () {
+                var _this = this;
+                this.blocks[this.blocks.length - 1].tick();
+                this.stage.render();
+                requestAnimationFrame(function () { _this.tick(); });
+            };
+            return Game;
+        }());
 
-            renderer.render(scene, camera);
-        }
-
-        // Handle Resize Window
-        function onWindowResize() {
-            const aspect = window.innerWidth / window.innerHeight;
-            const d = 10;
-            
-            camera.left = -d * aspect;
-            camera.right = d * aspect;
-            camera.top = d;
-            camera.bottom = -d;
-            
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        // Mulai Inisialisasi
-        init();
-
+        var game = new Game();
     </script>
 </body>
 </html>

@@ -167,11 +167,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
             z-index: 20;
             overflow-y: auto;
-            padding-top: 8vh;
-            padding-bottom: 5vh;
+            padding: 5vh 5%;
         }
         
         /* Sembunyikan score dan high-score saat game over */
@@ -184,9 +183,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 90%;
-            max-width: 600px;
+            width: 100%;
+            max-width: 800px;
             padding-bottom: 20px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         #container .game-over * {
@@ -201,28 +202,16 @@
         #container .game-over h2 {
             margin: 0;
             padding: 0;
-            font-size: 12vw;
+            font-size: 8vh;
             margin-bottom: 15px;
             line-height: 1.2;
             color: #ff6b6b;
         }
         
-        @media (min-width: 768px) {
-            #container .game-over h2 {
-                font-size: 6vw;
-            }
-        }
-        
         #container .game-over p {
-            font-size: 5vw;
-            margin: 5px 0;
+            font-size: 3vh;
+            margin: 8px 0;
             line-height: 1.3;
-        }
-        
-        @media (min-width: 768px) {
-            #container .game-over p {
-                font-size: 2.5vw;
-            }
         }
         
         .final-stats {
@@ -236,13 +225,13 @@
         
         .stats-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
             margin-top: 10px;
         }
         
         .final-stats .stat-item {
-            font-size: 4vw;
+            font-size: 2.2vh;
             margin-bottom: 8px;
             flex-direction: column;
             align-items: center;
@@ -250,27 +239,15 @@
             padding: 5px 0;
         }
         
-        @media (min-width: 768px) {
-            .final-stats .stat-item {
-                font-size: 1.8vw;
-            }
-        }
-        
         .game-over-instructions {
-            margin-top: 25px;
-            font-size: 4.5vw;
+            margin-top: 20px;
+            font-size: 2.8vh;
             color: #ffd700;
             font-weight: bold;
             padding: 10px 20px;
             background: rgba(0, 0, 0, 0.5);
             border-radius: 10px;
             border: 2px solid rgba(255, 215, 0, 0.3);
-        }
-        
-        @media (min-width: 768px) {
-            .game-over-instructions {
-                font-size: 2.2vw;
-            }
         }
         
         /* Pilihan Kesulitan di Game Over */
@@ -284,15 +261,9 @@
         }
         
         .game-over-difficulty p {
-            font-size: 4.5vw;
+            font-size: 2.8vh;
             margin-bottom: 15px;
             color: #4CAF50;
-        }
-        
-        @media (min-width: 768px) {
-            .game-over-difficulty p {
-                font-size: 2.2vw;
-            }
         }
         
         .difficulty-selector {
@@ -311,16 +282,9 @@
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 4vw;
-            min-width: 80px;
+            font-size: 2.5vh;
+            min-width: 90px;
             text-align: center;
-        }
-        
-        @media (min-width: 768px) {
-            .difficulty-btn {
-                font-size: 1.8vw;
-                padding: 12px 25px;
-            }
         }
         
         .difficulty-btn:hover, .difficulty-btn.active {
@@ -337,7 +301,7 @@
             color: white;
             border: none;
             border-radius: 15px;
-            font-size: 5vw;
+            font-size: 3.5vh;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
@@ -348,13 +312,6 @@
             background: linear-gradient(135deg, #45a049, #1B5E20);
             transform: scale(1.05);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        }
-        
-        @media (min-width: 768px) {
-            .restart-button {
-                font-size: 2.5vw;
-                padding: 18px 50px;
-            }
         }
         
         #container .game-ready {
@@ -380,7 +337,7 @@
             padding: 15px 30px;
             background-color: transparent;
             color: #eee;
-            font-size: 6vw;
+            font-size: 6vh;
             cursor: pointer;
             border-radius: 15px;
             margin-bottom: 20px;
@@ -407,7 +364,7 @@
             transition: opacity 0.8s ease, transform 0.8s ease;
             opacity: 0;
             color: #ddd;
-            font-size: 3.5vw;
+            font-size: 3vh;
             line-height: 1.4;
             z-index: 10;
             pointer-events: none;
@@ -579,21 +536,17 @@
                 font-size: 2.5vh;
             }
             
-            #container .game-over {
-                padding-top: 6vh;
-            }
-            
             #container .game-over h2 {
-                font-size: 10vw;
+                font-size: 6vh;
             }
             
             #container .game-over p {
-                font-size: 4vw;
+                font-size: 2.5vh;
             }
             
             #container #instructions {
                 bottom: 12vh;
-                font-size: 3vw;
+                font-size: 2.5vh;
             }
             
             #stats-panel {
@@ -612,24 +565,25 @@
             }
             
             .final-stats .stat-item {
-                font-size: 3.5vw;
+                font-size: 1.8vh;
             }
             
             .game-over-instructions {
-                font-size: 4vw;
+                font-size: 2.2vh;
             }
             
             .game-over-difficulty p {
-                font-size: 4vw;
+                font-size: 2.2vh;
             }
             
             .difficulty-btn {
-                font-size: 3.5vw;
+                font-size: 2vh;
                 padding: 8px 15px;
+                min-width: 80px;
             }
             
             .restart-button {
-                font-size: 4.5vw;
+                font-size: 2.8vh;
                 padding: 12px 30px;
             }
         }
@@ -647,20 +601,20 @@
             }
             
             #container .game-over {
-                padding-top: 4vh;
+                padding-top: 2vh;
             }
             
             #container .game-over h2 {
-                font-size: 8vw;
+                font-size: 5vh;
             }
             
             #container .game-over p {
-                font-size: 3.5vw;
+                font-size: 2vh;
             }
             
             #container #instructions {
                 bottom: 10vh;
-                font-size: 2.5vw;
+                font-size: 2vh;
             }
             
             #stats-panel {
@@ -686,24 +640,25 @@
             }
             
             .final-stats .stat-item {
-                font-size: 3vw;
+                font-size: 1.6vh;
             }
             
             .game-over-instructions {
-                font-size: 3.5vw;
+                font-size: 1.8vh;
             }
             
             .game-over-difficulty p {
-                font-size: 3.5vw;
+                font-size: 1.8vh;
             }
             
             .difficulty-btn {
-                font-size: 3vw;
+                font-size: 1.6vh;
                 padding: 6px 12px;
+                min-width: 70px;
             }
             
             .restart-button {
-                font-size: 4vw;
+                font-size: 2.2vh;
                 padding: 10px 25px;
             }
         }
@@ -721,26 +676,26 @@
             }
             
             #container .game-ready #start-button {
-                font-size: 5vw;
+                font-size: 5vh;
                 padding: 10px 20px;
             }
             
             #container .game-over {
-                padding-top: 4vh;
-                justify-content: flex-start;
+                justify-content: center;
+                padding: 2vh 5%;
             }
             
             #container .game-over h2 {
-                font-size: 8vw;
+                font-size: 5vh;
             }
             
             #container .game-over p {
-                font-size: 4vw;
+                font-size: 2.2vh;
             }
             
             #container #instructions {
                 bottom: 8vh;
-                font-size: 2.5vw;
+                font-size: 2vh;
             }
             
             #achievement-container {
@@ -748,76 +703,75 @@
             }
             
             .final-stats .stat-item {
-                font-size: 3vw;
+                font-size: 1.6vh;
+            }
+            
+            .game-over-content {
+                max-height: 85vh;
             }
         }
         
         /* Media Queries untuk desktop/layar besar */
-        @media (min-width: 768px) {
-            #container #score {
-                font-size: 10vh;
-                top: 30px;
-            }
-            
-            #container #high-score {
-                top: 15vh;
-                font-size: 4vh;
-            }
-            
-            #container .game-ready #start-button {
-                font-size: 5vw;
-                padding: 20px 40px;
-            }
-            
+        @media (min-width: 768px) and (min-height: 600px) {
             #container .game-over h2 {
-                font-size: 6vw;
+                font-size: 7vh;
             }
             
             #container .game-over p {
-                font-size: 2.5vw;
-            }
-            
-            #container #instructions {
-                bottom: 20vh;
-                font-size: 2.5vw;
-            }
-            
-            #achievement-container {
-                width: 350px;
-            }
-            
-            .achievement {
-                padding: 15px 20px;
-            }
-            
-            .achievement-title {
-                font-size: 16px;
-            }
-            
-            .achievement-desc {
-                font-size: 14px;
+                font-size: 2.8vh;
             }
             
             .final-stats .stat-item {
-                font-size: 2vw;
+                font-size: 2vh;
             }
             
             .game-over-instructions {
-                font-size: 2.5vw;
+                font-size: 2.5vh;
             }
             
             .game-over-difficulty p {
-                font-size: 2.5vw;
+                font-size: 2.5vh;
             }
             
             .difficulty-btn {
-                font-size: 2vw;
+                font-size: 2.2vh;
                 padding: 12px 25px;
             }
             
             .restart-button {
-                font-size: 2.5vw;
+                font-size: 3vh;
                 padding: 18px 50px;
+            }
+        }
+        
+        /* Untuk layar yang sangat lebar (desktop besar) */
+        @media (min-width: 1200px) and (min-height: 700px) {
+            #container .game-over h2 {
+                font-size: 8vh;
+            }
+            
+            #container .game-over p {
+                font-size: 3vh;
+            }
+            
+            .final-stats .stat-item {
+                font-size: 2.2vh;
+            }
+            
+            .game-over-instructions {
+                font-size: 2.8vh;
+            }
+            
+            .game-over-difficulty p {
+                font-size: 2.8vh;
+            }
+            
+            .difficulty-btn {
+                font-size: 2.5vh;
+            }
+            
+            .restart-button {
+                font-size: 3.2vh;
             }
         }
     </style>
@@ -869,29 +823,31 @@
                 <p>Keren sekali!</p>
                 
                 <div class="final-stats">
-                    <div class="stat-item">
-                        <span class="stat-label">Skor Akhir:</span>
-                        <span class="stat-value" id="final-score">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Tinggi Menara:</span>
-                        <span class="stat-value" id="final-height">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Perfect Placement:</span>
-                        <span class="stat-value" id="final-perfect">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Combo Tertinggi:</span>
-                        <span class="stat-value" id="final-combo">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Total Blok:</span>
-                        <span class="stat-value" id="final-blocks">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Tingkat Kesulitan:</span>
-                        <span class="stat-value" id="final-difficulty">Mudah</span>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Skor Akhir:</span>
+                            <span class="stat-value" id="final-score">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Tinggi Menara:</span>
+                            <span class="stat-value" id="final-height">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Perfect Placement:</span>
+                            <span class="stat-value" id="final-perfect">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Combo Tertinggi:</span>
+                            <span class="stat-value" id="final-combo">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Blok:</span>
+                            <span class="stat-value" id="final-blocks">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Tingkat Kesulitan:</span>
+                            <span class="stat-value" id="final-difficulty">Mudah</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -940,7 +896,10 @@
             soundEnabled: true,
             difficulty: 'easy',
             achievements: [],
-            achievementHistory: []
+            achievementHistory: [],
+            lastPlaceTime: 0,
+            mobilePlacementTolerance: 0.5, // Toleransi lebih tinggi untuk mobile
+            isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
         };
         
         // System suara sederhana
@@ -1378,27 +1337,6 @@
             });
         }
         
-        // Fungsi untuk update tombol difficulty
-        function updateDifficultyButtons() {
-            // Update tombol di game-ready
-            var readyButtons = document.querySelectorAll('.game-ready .difficulty-btn');
-            readyButtons.forEach(function(btn) {
-                btn.classList.remove('active');
-                if (btn.getAttribute('data-difficulty') === gameStats.difficulty) {
-                    btn.classList.add('active');
-                }
-            });
-            
-            // Update tombol di game-over
-            var overButtons = document.querySelectorAll('.game-over .difficulty-btn');
-            overButtons.forEach(function(btn) {
-                btn.classList.remove('active');
-                if (btn.getAttribute('data-difficulty') === gameStats.difficulty) {
-                    btn.classList.add('active');
-                }
-            });
-        }
-        
         // Setup kontrol suara
         document.getElementById('sound-control').addEventListener('click', function() {
             gameStats.soundEnabled = !gameStats.soundEnabled;
@@ -1471,6 +1409,27 @@
         document.getElementById('restart-game-button').addEventListener('click', function() {
             game.restartGame();
         });
+        
+        // Fungsi untuk update tombol difficulty
+        function updateDifficultyButtons() {
+            // Update tombol di game-ready
+            var readyButtons = document.querySelectorAll('.game-ready .difficulty-btn');
+            readyButtons.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-difficulty') === gameStats.difficulty) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Update tombol di game-over
+            var overButtons = document.querySelectorAll('.game-over .difficulty-btn');
+            overButtons.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-difficulty') === gameStats.difficulty) {
+                    btn.classList.add('active');
+                }
+            });
+        }
         
         // Muat preferensi kesulitan
         var savedDifficulty = localStorage.getItem('blockTowerDifficulty');
@@ -1642,6 +1601,13 @@
                     'hard': 1.3
                 };
                 
+                // PERBAIKAN: Di mobile, kurangi kecepatan sedikit untuk lebih presisi
+                if (gameStats.isMobile) {
+                    difficultyMultiplier.easy *= 0.9;
+                    difficultyMultiplier.medium *= 0.9;
+                    difficultyMultiplier.hard *= 0.9;
+                }
+                
                 this.speed = baseSpeed * difficultyMultiplier[gameStats.difficulty];
                 if (this.speed < -4) this.speed = -4;
                 this.direction = this.speed;
@@ -1672,7 +1638,10 @@
                     perfect: false
                 };
 
-                if (this.dimension[this.workingDimension] - overlap < 0.3) {
+                // PERBAIKAN: Gunakan toleransi yang lebih tinggi untuk perangkat mobile
+                var perfectThreshold = gameStats.isMobile ? gameStats.mobilePlacementTolerance : 0.3;
+                
+                if (this.dimension[this.workingDimension] - overlap < perfectThreshold) {
                     overlap = this.dimension[this.workingDimension];
                     blocksToReturn.perfect = true; // Perfect placement!
                     this.position.x = this.targetBlock.position.x;
@@ -1746,6 +1715,10 @@
                 this.startButton = document.getElementById('start-button');
                 this.instructions = document.getElementById('instructions');
                 this.scoreContainer.innerHTML = '0';
+                
+                // Flag untuk mencegah multiple tap di mobile
+                this.canPlace = true;
+                this.tapDelay = 200; // Delay 200ms antara tap
 
                 this.newBlocks = new THREE.Group();
                 this.placedBlocks = new THREE.Group();
@@ -1761,15 +1734,30 @@
                 this.tick();
                 this.updateState(this.STATES.READY);
 
+                // Event listeners dengan debouncing untuk mobile
                 document.addEventListener('keydown', function (e) {
                     if (e.keyCode == 32) _this.onAction();
                 });
-                document.addEventListener('click', function (e) {
+                
+                // Gunakan pointer events untuk support yang lebih baik di mobile
+                document.addEventListener('pointerdown', function (e) {
+                    // Cegah zoom pada double tap di mobile
+                    if (gameStats.isMobile) {
+                        e.preventDefault();
+                    }
                     _this.onAction();
                 });
+                
+                // Backup untuk touch devices
                 document.addEventListener('touchstart', function (e) {
-                    e.preventDefault();
-                    _this.onAction();
+                    // Cegah multiple tap terlalu cepat
+                    if (_this.canPlace) {
+                        _this.canPlace = false;
+                        _this.onAction();
+                        setTimeout(function() {
+                            _this.canPlace = true;
+                        }, _this.tapDelay);
+                    }
                 });
             }
 
@@ -1787,6 +1775,19 @@
             };
 
             Game.prototype.onAction = function () {
+                // Cegah multiple action di mobile
+                if (gameStats.isMobile && !this.canPlace) {
+                    return;
+                }
+                
+                // Atur delay untuk mobile
+                if (gameStats.isMobile) {
+                    this.canPlace = false;
+                    setTimeout(function() {
+                        _this.canPlace = true;
+                    }, this.tapDelay);
+                }
+                
                 switch (this.state) {
                     case this.STATES.READY:
                         this.startGame();
@@ -1808,6 +1809,9 @@
                     gameStats.currentCombo = 0;
                     gameStats.blocksPlaced = 0;
                     gameStats.highestCombo = 0;
+                    
+                    // Reset flag untuk mobile
+                    this.canPlace = true;
                     
                     // Catat waktu mulai game
                     gameStats.gameStartTime = Date.now();
